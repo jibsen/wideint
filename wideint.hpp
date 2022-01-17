@@ -272,22 +272,29 @@ constexpr wuint<width> operator*(const wuint<width> &lhs, const wuint<width> &rh
 template<std::size_t width>
 constexpr wuint<width> &wuint<width>::operator/=(const wuint<width> &rhs)
 {
+	auto lhs_bit_size = log2();
+	auto rhs_bit_size = rhs.log2();
+
+	auto adjust = lhs_bit_size < rhs_bit_size ? 0 : lhs_bit_size - rhs_bit_size;
+
 	wuint<width> quot(0);
-	wuint<width> rem(0);
+	wuint<width> rem(*this);
+	wuint<width> rhs_adjusted = rhs << static_cast<unsigned int>(adjust);
 
-	for (std::size_t bit_i = log2(); bit_i--; ) {
-		std::uint32_t carry = (cells[bit_i / 32] & (std::uint32_t(1) << (bit_i % 32))) ? 1 : 0;
+	for (std::size_t bit_i = adjust + 1; bit_i--; ) {
+		auto cmp = rem <=> rhs_adjusted;
 
-		for (std::size_t i = 0; i != width; ++i) {
-			std::uint64_t w = (static_cast<std::uint64_t>(rem.cells[i]) << 1) + carry;
-			rem.cells[i] = static_cast<std::uint32_t>(w);
-			carry = static_cast<std::uint32_t>(w >> 32);
-		}
-
-		if (rem >= rhs) {
+		if (cmp >= 0) {
 			quot.setbit(static_cast<unsigned int>(bit_i));
-			rem -= rhs;
+
+			rem -= rhs_adjusted;
+
+			if (cmp == 0) {
+				break;
+			}
 		}
+
+		rhs_adjusted >>= 1;
 	}
 
 	*this = quot;
@@ -306,20 +313,26 @@ constexpr wuint<width> operator/(const wuint<width> &lhs, const wuint<width> &rh
 template<std::size_t width>
 constexpr wuint<width> &wuint<width>::operator%=(const wuint<width> &rhs)
 {
-	wuint<width> rem(0);
+	auto lhs_bit_size = log2();
+	auto rhs_bit_size = rhs.log2();
 
-	for (std::size_t bit_i = log2(); bit_i--; ) {
-		std::uint32_t carry = (cells[bit_i / 32] & (std::uint32_t(1) << (bit_i % 32))) ? 1 : 0;
+	auto adjust = lhs_bit_size < rhs_bit_size ? 0 : lhs_bit_size - rhs_bit_size;
 
-		for (std::size_t i = 0; i != width; ++i) {
-			std::uint64_t w = (static_cast<std::uint64_t>(rem.cells[i]) << 1) + carry;
-			rem.cells[i] = static_cast<std::uint32_t>(w);
-			carry = static_cast<std::uint32_t>(w >> 32);
+	wuint<width> rem(*this);
+	wuint<width> rhs_adjusted = rhs << static_cast<unsigned int>(adjust);
+
+	for (std::size_t bit_i = adjust + 1; bit_i--; ) {
+		auto cmp = rem <=> rhs_adjusted;
+
+		if (cmp >= 0) {
+			rem -= rhs_adjusted;
+
+			if (cmp == 0) {
+				break;
+			}
 		}
 
-		if (rem >= rhs) {
-			rem -= rhs;
-		}
+		rhs_adjusted >>= 1;
 	}
 
 	*this = rem;
