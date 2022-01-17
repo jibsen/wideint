@@ -18,11 +18,14 @@
 
 #pragma once
 
+#include <algorithm>
 #include <array>
 #include <bit>
 #include <compare>
 #include <cstdint>
 #include <functional>
+#include <iostream>
+#include <string>
 
 namespace wideint {
 
@@ -616,6 +619,30 @@ constexpr wuint<width> shiftar(const wuint<width> &lhs, unsigned int shift)
 	);
 
 	return res;
+}
+
+template<std::size_t width>
+constexpr std::string to_string(const wuint<width> &obj)
+{
+	if (obj.is_zero()) {
+		return "0";
+	}
+
+	std::string res;
+
+	for (wuint<width> tmp = obj; !tmp.is_zero(); tmp /= 10) {
+		res.push_back((tmp % 10) + '0');
+	}
+
+	std::ranges::reverse(res);
+
+	return res;
+}
+
+template<std::size_t width>
+std::ostream &operator<<(std::ostream &os, const wuint<width> &obj)
+{
+	return os << to_string(obj);
 }
 
 } // namespace wideint

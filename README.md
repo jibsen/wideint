@@ -62,6 +62,14 @@ comparisons should work. There are functions `idiv()`, `imod()`, `shiftar()`,
 and a `is_negative()` method for performing some of these.
 
 
+Output
+------
+
+There is a `to_string()` function that converts a `wuint` to a `std::string`.
+
+There is an operator overload for stream output.
+
+
 Alternatives
 ------------
 
