@@ -114,7 +114,7 @@ Output
 
 There is a `to_string()` function that converts a `wuint` to a `std::string`.
 
-There is an operator overload for stream output.
+There are operator overloads for stream input and output.
 
 
 Alternatives

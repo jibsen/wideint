@@ -697,6 +697,50 @@ std::ostream &operator<<(std::ostream &os, const wuint<width> &obj)
 	return os << to_string(obj);
 }
 
+template<std::size_t width>
+std::istream &operator>>(std::istream &is, wuint<width> &obj)
+{
+	char ch = '\0';
+
+	if (!(is >> ch)) {
+		obj = 0;
+		return is;
+	}
+
+	std::string s;
+
+	if (ch == '-') {
+		s.push_back(ch);
+
+		if (!is.get(ch)) {
+			obj = 0;
+			return is;
+		}
+	}
+
+	if (!(ch >= '0' && ch <= '9')) {
+		obj = 0;
+		is.setstate(std::ios::failbit);
+		return is;
+	}
+
+	s.push_back(ch);
+
+	while (is.get(ch)) {
+		if (ch >= '0' && ch <= '9') {
+			s.push_back(ch);
+		}
+		else {
+			is.unget();
+			break;
+		}
+	}
+
+	obj = from_string<width>(s);
+
+	return is;
+}
+
 } // namespace wideint
 
 template<std::size_t width>
