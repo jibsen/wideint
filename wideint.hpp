@@ -16,20 +16,14 @@
 // limitations under the License.
 //
 
-// This was written for Advent of Code to be able to perform computations
-// on 128- or 256-bit numbers. It is not suitable as a general purpose
-// big integer class (stack allocated, slow algorithms for large numbers).
-//
-// While the values are stored as unsigned, it is possible to perform some
-// signed computations with a little care. Functions for signed divide
-// (idiv) and modulo (imod) are included.
-
 #pragma once
 
 #include <array>
 #include <bit>
 #include <compare>
 #include <cstdint>
+
+namespace wideint {
 
 template<std::size_t width>
 struct wuint {
@@ -525,3 +519,5 @@ constexpr wuint<width> imod(wuint<width> lhs, wuint<width> rhs)
 
 	return lhs_negative ? -(lhs % rhs) : lhs % rhs;
 }
+
+} // namespace wideint
