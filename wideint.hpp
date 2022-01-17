@@ -22,6 +22,7 @@
 #include <bit>
 #include <compare>
 #include <cstdint>
+#include <functional>
 
 namespace wideint {
 
@@ -618,3 +619,16 @@ constexpr wuint<width> shiftar(const wuint<width> &lhs, unsigned int shift)
 }
 
 } // namespace wideint
+
+template<std::size_t width>
+struct std::hash<wideint::wuint<width>>
+{
+	std::size_t operator()(const wideint::wuint<width> &obj) const noexcept
+	{
+		std::size_t hash = 17;
+		for (const auto &cell : obj.cells) {
+			hash = hash * 37 + std::hash<std::uint32_t>()(cell);
+		}
+		return hash;
+	}
+};
