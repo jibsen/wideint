@@ -58,8 +58,8 @@ it is possible to perform some signed computations using `wuint`, because
 the bit patterns can be interpreted as two's complement representations.
 
 Specifically, operations other than division, modulus, right-shift, and
-comparisons should work. There are functions `idiv()`, `imod()`, and a
-`is_negative()` method for performing some of these.
+comparisons should work. There are functions `idiv()`, `imod()`, `shiftar()`,
+and a `is_negative()` method for performing some of these.
 
 
 Alternatives

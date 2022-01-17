@@ -590,4 +590,31 @@ constexpr wuint<width> imod(const wuint<width> &lhs, const wuint<width> &rhs)
 	return lhs.is_negative() ? -res : res;
 }
 
+template<std::size_t width>
+constexpr wuint<width> shiftar(const wuint<width> &lhs, unsigned int shift)
+{
+	wuint<width> res(lhs);
+
+	std::size_t pos = shift / 32;
+	std::size_t offs = shift % 32;
+
+	std::uint32_t fill = res.is_negative() ? -1 : 0;
+
+	std::uint64_t w = static_cast<std::uint64_t>(res.cells[pos]) << 32;
+	res.cells[pos] = fill;
+
+	for (std::size_t i = 0; i != width - pos - 1; ++i) {
+		w = (w >> 32) + (static_cast<std::uint64_t>(res.cells[i + pos + 1]) << 32);
+		res.cells[i + pos + 1] = fill;
+
+		res.cells[i] = static_cast<std::uint32_t>(w >> offs);
+	}
+
+	res.cells[width - pos - 1] = static_cast<std::uint32_t>(
+		((w >> 32) | (static_cast<std::uint64_t>(fill) << 32)) >> offs
+	);
+
+	return res;
+}
+
 } // namespace wideint
