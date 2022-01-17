@@ -26,7 +26,7 @@ int main() {
 ~~~
 
 While doing [Advent of Code](https://adventofcode.com/) to pick up some
-C++20, I came across a problem where I wanted to do a computation of values
+C++20, I came across a problem where I wanted to do a computation on values
 larger than what fits in an `unsigned long long`. The C++ standard library
 does not include a big integer type yet, so I would either have to use one
 of the stable, well-tested, highly efficient libraries available, or write
@@ -75,6 +75,38 @@ the bit patterns can be interpreted as two's complement representations.
 Specifically, operations other than division, modulus, right-shift, and
 comparisons should work. There are functions `idiv()`, `imod()`, `shiftar()`,
 and a `is_negative()` method for performing some of these.
+
+~~~.cpp
+#include <iostream>
+#include <utility>
+#include "wideint.hpp"
+
+using wideint::wuint;
+
+template<std::size_t width>
+constexpr wuint<width> gcd(const wuint<width> &x, const wuint<width> &y)
+{
+	auto a = x;
+	auto b = y;
+
+	while (b != 0) {
+		a = std::exchange(b, imod(a, b));
+	}
+
+	return abs(a);
+}
+
+int main() {
+	using uint128 = wideint::wuint<4>;
+
+	constexpr auto p = uint128("-9223372036854775337");
+	constexpr auto q = uint128("4611686018427387847");
+	constexpr auto r = uint128("2305843009213693907");
+
+	// prints 2305843009213693907
+	std::cout << gcd(p * r, q * r) << '\n';
+}
+~~~
 
 
 Output
