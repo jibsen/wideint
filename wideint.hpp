@@ -66,7 +66,7 @@ struct wuint {
 	}
 
 	constexpr std::size_t log2() const {
-		for (std::size_t i = width; i-- != 0; ) {
+		for (std::size_t i = width; i--; ) {
 			if (cells[i]) {
 				return std::bit_width(cells[i]) + 32 * i;
 			}
@@ -82,11 +82,20 @@ struct wuint {
 		return (cells[pos] >> offs) & 1u;
 	}
 
+	constexpr wuint<width> &setbit(unsigned int bit) {
+		unsigned int pos = bit / 32;
+		unsigned int offs = bit % 32;
+
+		cells[pos] |= std::uint32_t(1) << offs;
+
+		return *this;
+	}
+
 	constexpr wuint<width> &operator++() {
 		std::uint32_t carry = 1;
 
 		for (std::size_t i = 0; carry && i != width; ++i) {
-			std::uint64_t w = std::uint64_t(cells[i]) + carry;
+			std::uint64_t w = static_cast<std::uint64_t>(cells[i]) + carry;
 			cells[i] = static_cast<std::uint32_t>(w);
 			carry = static_cast<std::uint32_t>(w >> 32);
 		}
@@ -104,7 +113,7 @@ struct wuint {
 		std::uint32_t borrow = 1;
 
 		for (std::size_t i = 0; borrow && i != width; ++i) {
-			std::uint64_t w = std::uint64_t(cells[i]) - borrow;
+			std::uint64_t w = static_cast<std::uint64_t>(cells[i]) - borrow;
 			cells[i] = static_cast<std::uint32_t>(w);
 			borrow = static_cast<std::uint32_t>(w >> 32) ? 1 : 0;
 		}
@@ -119,7 +128,7 @@ struct wuint {
 	}
 
 	constexpr std::strong_ordering operator<=>(const wuint<width> &rhs) const {
-		for (std::size_t i = width; i-- != 0; ) {
+		for (std::size_t i = width; i--; ) {
 			if (cells[i] != rhs.cells[i]) {
 				return cells[i] <=> rhs.cells[i];
 			}
@@ -128,7 +137,7 @@ struct wuint {
 		return std::strong_ordering::equal;
 	}
 
-	bool operator==(const wuint<width> &) const = default;
+	constexpr bool operator==(const wuint<width> &) const = default;
 
 	constexpr bool operator==(std::uint32_t c) const {
 		if (cells.front() != c) {
@@ -148,27 +157,30 @@ struct wuint {
 };
 
 template<std::size_t width>
-constexpr wuint<width> operator~(wuint<width> obj)
+constexpr wuint<width> operator~(const wuint<width> &obj)
 {
-	for (auto &cell : obj.cells) {
+	wuint<width> res(obj);
+
+	for (auto &cell : res.cells) {
 		cell = ~cell;
 	}
 
-	return obj;
+	return res;
 }
 
 template<std::size_t width>
-constexpr wuint<width> operator-(wuint<width> obj)
+constexpr wuint<width> operator-(const wuint<width> &obj)
 {
+	wuint<width> res(obj);
 	std::uint32_t carry = 1;
 
 	for (std::size_t i = 0; i != width; ++i) {
-		std::uint64_t w = std::uint64_t(std::uint32_t(~obj.cells[i])) + carry;
-		obj.cells[i] = static_cast<std::uint32_t>(w);
+		std::uint64_t w = static_cast<std::uint64_t>(static_cast<std::uint32_t>(~res.cells[i])) + carry;
+		res.cells[i] = static_cast<std::uint32_t>(w);
 		carry = static_cast<std::uint32_t>(w >> 32);
 	}
 
-       	return obj;
+       	return res;
 }
 
 template<std::size_t width>
@@ -177,7 +189,7 @@ constexpr wuint<width> &wuint<width>::operator+=(const wuint<width> &rhs)
 	std::uint32_t carry = 0;
 
 	for (std::size_t i = 0; i != width; ++i) {
-		std::uint64_t w = std::uint64_t(cells[i]) + rhs.cells[i] + carry;
+		std::uint64_t w = static_cast<std::uint64_t>(cells[i]) + rhs.cells[i] + carry;
 		cells[i] = static_cast<std::uint32_t>(w);
 		carry = static_cast<std::uint32_t>(w >> 32);
 	}
@@ -186,9 +198,11 @@ constexpr wuint<width> &wuint<width>::operator+=(const wuint<width> &rhs)
 }
 
 template<std::size_t width>
-constexpr wuint<width> operator+(wuint<width> lhs, const wuint<width> &rhs)
+constexpr wuint<width> operator+(const wuint<width> &lhs, const wuint<width> &rhs)
 {
-	return lhs += rhs;
+	wuint<width> res(lhs);
+	res += rhs;
+	return res;
 }
 
 template<std::size_t width>
@@ -197,7 +211,7 @@ constexpr wuint<width> &wuint<width>::operator-=(const wuint<width> &rhs)
 	std::uint32_t borrow = 0;
 
 	for (std::size_t i = 0; i != width; ++i) {
-		std::uint64_t w = std::uint64_t(cells[i]) - rhs.cells[i] - borrow;
+		std::uint64_t w = static_cast<std::uint64_t>(cells[i]) - rhs.cells[i] - borrow;
 		cells[i] = static_cast<std::uint32_t>(w);
 		borrow = static_cast<std::uint32_t>(w >> 32) ? 1 : 0;
 	}
@@ -206,99 +220,119 @@ constexpr wuint<width> &wuint<width>::operator-=(const wuint<width> &rhs)
 }
 
 template<std::size_t width>
-constexpr wuint<width> operator-(wuint<width> lhs, const wuint<width> &rhs)
+constexpr wuint<width> operator-(const wuint<width> &lhs, const wuint<width> &rhs)
 {
-	return lhs -= rhs;
+	wuint<width> res(lhs);
+	res -= rhs;
+	return res;
 }
 
 template<std::size_t width>
 constexpr wuint<width> &wuint<width>::operator*=(const wuint<width> &rhs)
 {
-	wuint<width> t(0);
+	wuint<width> res(0);
 
 	for (std::size_t i = 0; i != width; ++i) {
 		if (cells[i]) {
 			std::uint32_t carry = 0;
 
 			for (std::size_t j = 0; i + j != width; ++j) {
-				std::uint64_t w = std::uint64_t(cells[i]) * rhs.cells[j] + t.cells[i + j] + carry;
-				t.cells[i + j] = static_cast<std::uint32_t>(w);
+				std::uint64_t w = static_cast<std::uint64_t>(cells[i]) * rhs.cells[j] + res.cells[i + j] + carry;
+				res.cells[i + j] = static_cast<std::uint32_t>(w);
 				carry = static_cast<std::uint32_t>(w >> 32);
 			}
 		}
 	}
 
-	*this = t;
+	*this = res;
 
 	return *this;
 }
 
 template<std::size_t width>
-constexpr wuint<width> operator*(wuint<width> lhs, const wuint<width> &rhs)
+constexpr wuint<width> operator*(const wuint<width> &lhs, const wuint<width> &rhs)
 {
-	return lhs *= rhs;
-}
+	wuint<width> res(0);
 
-template<std::size_t width>
-constexpr wuint<width> &wuint<width>::operator%=(const wuint<width> &rhs)
-{
-	wuint<width> r(0);
+	for (std::size_t i = 0; i != width; ++i) {
+		if (lhs.cells[i]) {
+			std::uint32_t carry = 0;
 
-	for (std::size_t bit_i = log2(); bit_i-- != 0; ) {
-		std::uint32_t carry = (cells[bit_i / 32] & (std::uint32_t(1) << (bit_i % 32))) ? 1 : 0;
-
-		for (std::size_t i = 0; i != width; ++i) {
-			std::uint64_t w = (std::uint64_t(r.cells[i]) << 1) + carry;
-			r.cells[i] = static_cast<std::uint32_t>(w);
-			carry = static_cast<std::uint32_t>(w >> 32);
-		}
-
-		if (r >= rhs) {
-			r -= rhs;
+			for (std::size_t j = 0; i + j != width; ++j) {
+				std::uint64_t w = static_cast<std::uint64_t>(lhs.cells[i]) * rhs.cells[j] + res.cells[i + j] + carry;
+				res.cells[i + j] = static_cast<std::uint32_t>(w);
+				carry = static_cast<std::uint32_t>(w >> 32);
+			}
 		}
 	}
 
-	*this = r;
-
-	return *this;
-}
-
-template<std::size_t width>
-constexpr wuint<width> operator%(wuint<width> lhs, const wuint<width> &rhs)
-{
-	return lhs %= rhs;
+	return res;
 }
 
 template<std::size_t width>
 constexpr wuint<width> &wuint<width>::operator/=(const wuint<width> &rhs)
 {
-	wuint<width> q(0);
-	wuint<width> r(0);
+	wuint<width> quot(0);
+	wuint<width> rem(0);
 
-	for (std::size_t bit_i = log2(); bit_i-- != 0; ) {
+	for (std::size_t bit_i = log2(); bit_i--; ) {
 		std::uint32_t carry = (cells[bit_i / 32] & (std::uint32_t(1) << (bit_i % 32))) ? 1 : 0;
 
 		for (std::size_t i = 0; i != width; ++i) {
-			std::uint64_t w = (std::uint64_t(r.cells[i]) << 1) + carry;
-			r.cells[i] = static_cast<std::uint32_t>(w);
+			std::uint64_t w = (static_cast<std::uint64_t>(rem.cells[i]) << 1) + carry;
+			rem.cells[i] = static_cast<std::uint32_t>(w);
 			carry = static_cast<std::uint32_t>(w >> 32);
 		}
 
-		if (r >= rhs) {
-			r -= rhs;
-			q.cells[bit_i / 32] |= std::uint32_t(1) << (bit_i % 32);
+		if (rem >= rhs) {
+			quot.setbit(static_cast<unsigned int>(bit_i));
+			rem -= rhs;
 		}
 	}
 
-	*this = q;
+	*this = quot;
 
 	return *this;
 }
 
 template<std::size_t width>
-constexpr wuint<width> operator/(wuint<width> lhs, const wuint<width> &rhs)
+constexpr wuint<width> operator/(const wuint<width> &lhs, const wuint<width> &rhs)
 {
-	return lhs /= rhs;
+	wuint<width> res(lhs);
+	res /= rhs;
+	return res;
+}
+
+template<std::size_t width>
+constexpr wuint<width> &wuint<width>::operator%=(const wuint<width> &rhs)
+{
+	wuint<width> rem(0);
+
+	for (std::size_t bit_i = log2(); bit_i--; ) {
+		std::uint32_t carry = (cells[bit_i / 32] & (std::uint32_t(1) << (bit_i % 32))) ? 1 : 0;
+
+		for (std::size_t i = 0; i != width; ++i) {
+			std::uint64_t w = (static_cast<std::uint64_t>(rem.cells[i]) << 1) + carry;
+			rem.cells[i] = static_cast<std::uint32_t>(w);
+			carry = static_cast<std::uint32_t>(w >> 32);
+		}
+
+		if (rem >= rhs) {
+			rem -= rhs;
+		}
+	}
+
+	*this = rem;
+
+	return *this;
+}
+
+template<std::size_t width>
+constexpr wuint<width> operator%(const wuint<width> &lhs, const wuint<width> &rhs)
+{
+	wuint<width> res(lhs);
+	res %= rhs;
+	return res;
 }
 
 template<std::size_t width>
@@ -310,7 +344,7 @@ constexpr wuint<width> &wuint<width>::operator<<=(unsigned int shift)
 	std::uint64_t w = cells[width - pos - 1];
 	cells[width - pos - 1] = 0;
 
-	for (std::size_t i = width - pos - 1; i-- != 0; ) {
+	for (std::size_t i = width - pos - 1; i--; ) {
 		w = (w << 32) + cells[i];
 		cells[i] = 0;
 
@@ -323,9 +357,11 @@ constexpr wuint<width> &wuint<width>::operator<<=(unsigned int shift)
 }
 
 template<std::size_t width>
-constexpr wuint<width> operator<<(wuint<width> lhs, unsigned int shift)
+constexpr wuint<width> operator<<(const wuint<width> &lhs, unsigned int shift)
 {
-	return lhs <<= shift;
+	wuint<width> res(lhs);
+	res <<= shift;
+	return res;
 }
 
 template<std::size_t width>
@@ -334,11 +370,11 @@ constexpr wuint<width> &wuint<width>::operator>>=(unsigned int shift)
 	std::size_t pos = shift / 32;
 	std::size_t offs = shift % 32;
 
-	std::uint64_t w = std::uint64_t(cells[pos]) << 32;
+	std::uint64_t w = static_cast<std::uint64_t>(cells[pos]) << 32;
 	cells[pos] = 0;
 
 	for (std::size_t i = 0; i != width - pos - 1; ++i) {
-		w = (w >> 32) + (std::uint64_t(cells[i + pos + 1]) << 32);
+		w = (w >> 32) + (static_cast<std::uint64_t>(cells[i + pos + 1]) << 32);
 		cells[i + pos + 1] = 0;
 
 		cells[i] = static_cast<std::uint32_t>(w >> offs);
@@ -350,9 +386,11 @@ constexpr wuint<width> &wuint<width>::operator>>=(unsigned int shift)
 }
 
 template<std::size_t width>
-constexpr wuint<width> operator>>(wuint<width> lhs, unsigned int shift)
+constexpr wuint<width> operator>>(const wuint<width> &lhs, unsigned int shift)
 {
-	return lhs >>= shift;
+	wuint<width> res(lhs);
+	res >>= shift;
+	return res;
 }
 
 template<std::size_t width>
@@ -361,7 +399,7 @@ constexpr wuint<width> &wuint<width>::operator+=(std::uint32_t c)
 	std::uint32_t carry = c;
 
 	for (std::size_t i = 0; i != width; ++i) {
-		std::uint64_t w = std::uint64_t(cells[i]) + carry;
+		std::uint64_t w = static_cast<std::uint64_t>(cells[i]) + carry;
 		cells[i] = static_cast<std::uint32_t>(w);
 		carry = static_cast<std::uint32_t>(w >> 32);
 	}
@@ -370,15 +408,19 @@ constexpr wuint<width> &wuint<width>::operator+=(std::uint32_t c)
 }
 
 template<std::size_t width>
-constexpr wuint<width> operator+(wuint<width> lhs, std::uint32_t c)
+constexpr wuint<width> operator+(const wuint<width> &lhs, std::uint32_t c)
 {
-	return lhs += c;
+	wuint<width> res(lhs);
+	res += c;
+	return res;
 }
 
 template<std::size_t width>
-constexpr wuint<width> operator+(std::uint32_t c, wuint<width> rhs)
+constexpr wuint<width> operator+(std::uint32_t c, const wuint<width> &rhs)
 {
-	return rhs += c;
+	wuint<width> res(rhs);
+	res += c;
+	return res;
 }
 
 template<std::size_t width>
@@ -387,7 +429,7 @@ constexpr wuint<width> &wuint<width>::operator-=(std::uint32_t c)
 	std::uint32_t borrow = c;
 
 	for (std::size_t i = 0; i != width; ++i) {
-		std::uint64_t w = std::uint64_t(cells[i]) - borrow;
+		std::uint64_t w = static_cast<std::uint64_t>(cells[i]) - borrow;
 		cells[i] = static_cast<std::uint32_t>(w);
 		borrow = static_cast<std::uint32_t>(w >> 32) ? 1 : 0;
 	}
@@ -396,9 +438,19 @@ constexpr wuint<width> &wuint<width>::operator-=(std::uint32_t c)
 }
 
 template<std::size_t width>
-constexpr wuint<width> operator-(wuint<width> lhs, std::uint32_t c)
+constexpr wuint<width> operator-(const wuint<width> &lhs, std::uint32_t c)
 {
-	return lhs -= c;
+	wuint<width> res(lhs);
+	res -= c;
+	return res;
+}
+
+template<std::size_t width>
+constexpr wuint<width> operator-(std::uint32_t c, const wuint<width> &rhs)
+{
+	wuint<width> res(c);
+	res -= rhs;
+	return res;
 }
 
 template<std::size_t width>
@@ -407,7 +459,7 @@ constexpr wuint<width> &wuint<width>::operator*=(std::uint32_t c)
 	std::uint32_t carry = 0;
 
 	for (std::size_t i = 0; i != width; ++i) {
-		std::uint64_t w = std::uint64_t(cells[i]) * c + carry;
+		std::uint64_t w = static_cast<std::uint64_t>(cells[i]) * c + carry;
 		cells[i] = static_cast<std::uint32_t>(w);
 		carry = static_cast<std::uint32_t>(w >> 32);
 	}
@@ -416,15 +468,19 @@ constexpr wuint<width> &wuint<width>::operator*=(std::uint32_t c)
 }
 
 template<std::size_t width>
-constexpr wuint<width> operator*(wuint<width> lhs, std::uint32_t c)
+constexpr wuint<width> operator*(const wuint<width> &lhs, std::uint32_t c)
 {
-	return lhs *= c;
+	wuint<width> res(lhs);
+	res *= c;
+	return res;
 }
 
 template<std::size_t width>
-constexpr wuint<width> operator*(std::uint32_t c, wuint<width> rhs)
+constexpr wuint<width> operator*(std::uint32_t c, const wuint<width> &rhs)
 {
-	return rhs *= c;
+	wuint<width> res(rhs);
+	res *= c;
+	return res;
 }
 
 template<std::size_t width>
@@ -432,19 +488,29 @@ constexpr wuint<width> &wuint<width>::operator/=(std::uint32_t c)
 {
 	std::uint64_t w = 0;
 
-	for (std::size_t i = width; i-- != 0; ) {
+	for (std::size_t i = width; i--; ) {
 		w = (w << 32) + cells[i];
-		cells[i] = std::uint32_t(w / std::uint64_t(c));
-		w %= std::uint64_t(c);
+		cells[i] = static_cast<std::uint32_t>(w / static_cast<std::uint64_t>(c));
+		w %= static_cast<std::uint64_t>(c);
 	}
 
 	return *this;
 }
 
 template<std::size_t width>
-constexpr wuint<width> operator/(wuint<width> lhs, std::uint32_t c)
+constexpr wuint<width> operator/(const wuint<width> &lhs, std::uint32_t c)
 {
-	return lhs /= c;
+	wuint<width> res(lhs);
+	res /= c;
+	return res;
+}
+
+template<std::size_t width>
+constexpr wuint<width> operator/(std::uint32_t c, const wuint<width> &rhs)
+{
+	wuint<width> res(c);
+	res /= rhs;
+	return res;
 }
 
 template<std::size_t width>
@@ -452,12 +518,14 @@ constexpr wuint<width> &wuint<width>::operator%=(std::uint32_t c)
 {
 	std::uint64_t w = 0;
 
-	for (std::size_t i = width; i-- != 0; ) {
+	for (std::size_t i = width; i--; ) {
 		w = (w << 32) + cells[i];
-		w %= std::uint64_t(c);
+		w %= static_cast<std::uint64_t>(c);
 	}
 
-	return *this = std::uint32_t(w);
+	*this = static_cast<std::uint32_t>(w);
+
+	return *this;
 }
 
 template<std::size_t width>
@@ -465,12 +533,20 @@ constexpr std::uint32_t operator%(const wuint<width> &lhs, std::uint32_t c)
 {
 	std::uint64_t w = 0;
 
-	for (std::size_t i = width; i-- != 0; ) {
+	for (std::size_t i = width; i--; ) {
 		w = (w << 32) + lhs.cells[i];
-		w %= std::uint64_t(c);
+		w %= static_cast<std::uint64_t>(c);
 	}
 
 	return static_cast<std::uint32_t>(w);
+}
+
+template<std::size_t width>
+constexpr wuint<width> operator%(std::uint32_t c, const wuint<width> &rhs)
+{
+	wuint<width> res(c);
+	res %= rhs;
+	return res;
 }
 
 template<std::size_t width>
@@ -486,38 +562,19 @@ constexpr wuint<width> abs(const wuint<width> &obj)
 }
 
 template<std::size_t width>
-constexpr wuint<width> idiv(wuint<width> lhs, wuint<width> rhs)
+constexpr wuint<width> idiv(const wuint<width> &lhs, const wuint<width> &rhs)
 {
-	bool negative = false;
+	wuint<width> res = abs(lhs) / abs(rhs);
 
-	if (lhs.is_negative()) {
-		lhs = -lhs;
-		negative = true;
-	}
-
-	if (rhs.is_negative()) {
-		rhs = -rhs;
-		negative = !negative;
-	}
-
-	return negative ? -(lhs / rhs) : lhs / rhs;
+	return lhs.is_negative() != rhs.is_negative() ? -res : res;
 }
 
 template<std::size_t width>
-constexpr wuint<width> imod(wuint<width> lhs, wuint<width> rhs)
+constexpr wuint<width> imod(const wuint<width> &lhs, const wuint<width> &rhs)
 {
-	bool lhs_negative = false;
+	wuint<width> res = abs(lhs) % abs(rhs);
 
-	if (lhs.is_negative()) {
-		lhs = -lhs;
-		lhs_negative = true;
-	}
-
-	if (rhs.is_negative()) {
-		rhs = -rhs;
-	}
-
-	return lhs_negative ? -(lhs % rhs) : lhs % rhs;
+	return lhs.is_negative() ? -res : res;
 }
 
 } // namespace wideint
