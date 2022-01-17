@@ -26,12 +26,14 @@
 #include <functional>
 #include <iostream>
 #include <string>
+#include <string_view>
 
 namespace wideint {
 
 template<std::size_t width>
 struct wuint {
 	constexpr explicit wuint(std::uint32_t c) : cells{c} {}
+	constexpr explicit wuint(std::string_view sv);
 
 	constexpr wuint<width> &operator=(std::uint32_t c) {
 		cells.fill(0);
@@ -637,6 +639,56 @@ constexpr std::string to_string(const wuint<width> &obj)
 	std::ranges::reverse(res);
 
 	return res;
+}
+
+template<std::size_t width>
+constexpr wuint<width> from_string(std::string_view sv)
+{
+	wuint<width> res(0);
+
+	bool negative = false;
+
+	if (sv.starts_with('-')) {
+		negative = true;
+		sv.remove_prefix(1);
+	}
+
+	if (sv.starts_with("0x") || sv.starts_with("0X"))
+	{
+		sv.remove_prefix(2);
+
+		for (auto ch : sv) {
+			if (ch >= '0' && ch <= '9') {
+				res = res * 16 + (ch - '0');
+			}
+			else if (ch >= 'a' && ch <= 'f') {
+				res = res * 16 + (ch - 'a' + 10);
+			}
+			else if (ch >= 'A' && ch <= 'F') {
+				res = res * 16 + (ch - 'A' + 10);
+			}
+			else {
+				break;
+			}
+		}
+	}
+	else {
+		for (auto ch : sv) {
+			if (ch < '0' || ch > '9') {
+				break;
+			}
+
+			res = res * 10 + (ch - '0');
+		}
+	}
+
+	return negative ? -res : res;
+}
+
+template<std::size_t width>
+constexpr wuint<width>::wuint(std::string_view sv)
+{
+	*this = from_string<width>(sv);
 }
 
 template<std::size_t width>

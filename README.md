@@ -10,6 +10,21 @@ About
 
 wideint is a C++ implementation of wide *exact-width* unsigned integer types.
 
+~~~.cpp
+#include <iostream>
+#include "wideint.hpp"
+
+int main() {
+	using uint128 = wideint::wuint<4>;
+
+	constexpr auto p = uint128("9223372036854775337");
+	constexpr auto q = uint128("4611686018427387847");
+
+	// prints 42535295865117305235085505148949129439
+	std::cout << p * q << '\n';
+}
+~~~
+
 While doing [Advent of Code](https://adventofcode.com/) to pick up some
 C++20, I came across a problem where I wanted to do a computation of values
 larger than what fits in an `unsigned long long`. The C++ standard library
