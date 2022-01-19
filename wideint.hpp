@@ -48,6 +48,10 @@ struct wuint {
 	constexpr wuint<width> &operator/=(const wuint<width> &rhs);
 	constexpr wuint<width> &operator%=(const wuint<width> &rhs);
 
+	constexpr wuint<width> &operator&=(const wuint<width> &rhs);
+	constexpr wuint<width> &operator|=(const wuint<width> &rhs);
+	constexpr wuint<width> &operator^=(const wuint<width> &rhs);
+
 	constexpr wuint<width> &operator<<=(unsigned int shift);
 	constexpr wuint<width> &operator>>=(unsigned int shift);
 
@@ -56,6 +60,10 @@ struct wuint {
 	constexpr wuint<width> &operator*=(std::uint32_t c);
 	constexpr wuint<width> &operator/=(std::uint32_t c);
 	constexpr wuint<width> &operator%=(std::uint32_t c);
+
+	constexpr wuint<width> &operator&=(std::uint32_t c);
+	constexpr wuint<width> &operator|=(std::uint32_t c);
+	constexpr wuint<width> &operator^=(std::uint32_t c);
 
 	constexpr bool is_zero() const {
 		for (std::size_t i = 0; i != width; ++i) {
@@ -368,6 +376,60 @@ constexpr wuint<width> operator%(const wuint<width> &lhs, const wuint<width> &rh
 }
 
 template<std::size_t width>
+constexpr wuint<width> &wuint<width>::operator&=(const wuint<width> &rhs)
+{
+	for (std::size_t i = 0; i != width; ++i) {
+		cells[i] &= rhs.cells[i];
+	}
+
+	return *this;
+}
+
+template<std::size_t width>
+constexpr wuint<width> operator&(const wuint<width> &lhs, const wuint<width> &rhs)
+{
+	wuint<width> res(lhs);
+	res &= rhs;
+	return res;
+}
+
+template<std::size_t width>
+constexpr wuint<width> &wuint<width>::operator|=(const wuint<width> &rhs)
+{
+	for (std::size_t i = 0; i != width; ++i) {
+		cells[i] |= rhs.cells[i];
+	}
+
+	return *this;
+}
+
+template<std::size_t width>
+constexpr wuint<width> operator|(const wuint<width> &lhs, const wuint<width> &rhs)
+{
+	wuint<width> res(lhs);
+	res |= rhs;
+	return res;
+}
+
+template<std::size_t width>
+constexpr wuint<width> &wuint<width>::operator^=(const wuint<width> &rhs)
+{
+	for (std::size_t i = 0; i != width; ++i) {
+		cells[i] ^= rhs.cells[i];
+	}
+
+	return *this;
+}
+
+template<std::size_t width>
+constexpr wuint<width> operator^(const wuint<width> &lhs, const wuint<width> &rhs)
+{
+	wuint<width> res(lhs);
+	res ^= rhs;
+	return res;
+}
+
+template<std::size_t width>
 constexpr wuint<width> &wuint<width>::operator<<=(unsigned int shift)
 {
 	std::size_t pos = shift / 32;
@@ -582,9 +644,73 @@ constexpr wuint<width> operator%(std::uint32_t c, const wuint<width> &rhs)
 }
 
 template<std::size_t width>
+constexpr wuint<width> &wuint<width>::operator&=(std::uint32_t c)
+{
+	*this = cells[0] & c;
+
+	return *this;
+}
+
+template<std::size_t width>
 constexpr std::uint32_t operator&(const wuint<width> &lhs, std::uint32_t c)
 {
 	return lhs.cells[0] & c;
+}
+
+template<std::size_t width>
+constexpr wuint<width> operator&(std::uint32_t c, const wuint<width> &rhs)
+{
+	wuint<width> res(0);
+	res.cells[0] = c & rhs.cells[0];
+	return res;
+}
+
+template<std::size_t width>
+constexpr wuint<width> &wuint<width>::operator|=(std::uint32_t c)
+{
+	cells[0] |= c;
+
+	return *this;
+}
+
+template<std::size_t width>
+constexpr wuint<width> operator|(const wuint<width> &lhs, std::uint32_t c)
+{
+	wuint<width> res(lhs);
+	res |= c;
+	return res;
+}
+
+template<std::size_t width>
+constexpr wuint<width> operator|(std::uint32_t c, const wuint<width> &rhs)
+{
+	wuint<width> res(rhs);
+	res |= c;
+	return res;
+}
+
+template<std::size_t width>
+constexpr wuint<width> &wuint<width>::operator^=(std::uint32_t c)
+{
+	cells[0] ^= c;
+
+	return *this;
+}
+
+template<std::size_t width>
+constexpr wuint<width> operator^(const wuint<width> &lhs, std::uint32_t c)
+{
+	wuint<width> res(lhs);
+	res ^= c;
+	return res;
+}
+
+template<std::size_t width>
+constexpr wuint<width> operator^(std::uint32_t c, const wuint<width> &rhs)
+{
+	wuint<width> res(rhs);
+	res ^= c;
+	return res;
 }
 
 template<std::size_t width>
