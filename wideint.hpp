@@ -67,6 +67,8 @@ struct wuint {
 		return true;
 	}
 
+	constexpr explicit operator bool() const { return !is_zero(); }
+
 	constexpr bool is_negative() const {
 		return cells.back() & (std::uint32_t(1) << 31);
 	}
@@ -85,7 +87,7 @@ struct wuint {
 		unsigned int pos = bit / 32;
 		unsigned int offs = bit % 32;
 
-		return (cells[pos] >> offs) & 1u;
+		return (cells[pos] >> offs) & 1U;
 	}
 
 	constexpr wuint<width> &setbit(unsigned int bit) {
@@ -141,6 +143,17 @@ struct wuint {
 		}
 
 		return std::strong_ordering::equal;
+	}
+
+	constexpr std::strong_ordering operator<=>(std::uint32_t c) const
+	{
+		for (std::size_t i = width - 1; i != 0; --i) {
+			if (cells[i] != 0) {
+				return std::strong_ordering::greater;
+			}
+		}
+
+		return cells[0] <=> c;
 	}
 
 	constexpr bool operator==(const wuint<width> &) const = default;
