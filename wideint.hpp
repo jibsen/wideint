@@ -610,8 +610,10 @@ constexpr wuint<width> operator/(const wuint<width> &lhs, std::uint32_t c)
 template<std::size_t width>
 constexpr wuint<width> operator/(std::uint32_t c, const wuint<width> &rhs)
 {
-	wuint<width> res(c);
-	res /= rhs;
+	wuint<width> res(0);
+	if (c >= rhs) {
+		res.cells[0] = c / rhs.cells[0];
+	}
 	return res;
 }
 
@@ -647,7 +649,9 @@ template<std::size_t width>
 constexpr wuint<width> operator%(std::uint32_t c, const wuint<width> &rhs)
 {
 	wuint<width> res(c);
-	res %= rhs;
+	if (c >= rhs) {
+		res.cells[0] = c % rhs.cells[0];
+	}
 	return res;
 }
 
