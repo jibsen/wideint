@@ -435,6 +435,10 @@ constexpr wuint<width> &wuint<width>::operator<<=(unsigned int shift)
 	std::size_t pos = shift / 32;
 	std::size_t offs = shift % 32;
 
+	for (std::size_t i = pos; i-- > width - pos; ) {
+		cells[i] = 0;
+	}
+
 	std::uint64_t w = cells[width - pos - 1];
 	cells[width - pos - 1] = 0;
 
@@ -475,6 +479,10 @@ constexpr wuint<width> &wuint<width>::operator>>=(unsigned int shift)
 	}
 
 	cells[width - pos - 1] = static_cast<std::uint32_t>(w >> (32 + offs));
+
+	for (std::size_t i = width - pos; i < pos; ++i) {
+		cells[i] = 0;
+	}
 
 	return *this;
 }
@@ -758,6 +766,10 @@ constexpr wuint<width> shiftar(const wuint<width> &lhs, unsigned int shift)
 	res.cells[width - pos - 1] = static_cast<std::uint32_t>(
 		((w >> 32) | (static_cast<std::uint64_t>(fill) << 32)) >> offs
 	);
+
+	for (std::size_t i = width - pos; i < pos; ++i) {
+		res.cells[i] = fill;
+	}
 
 	return res;
 }
