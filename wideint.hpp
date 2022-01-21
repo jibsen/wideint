@@ -32,6 +32,16 @@ namespace wideint {
 
 template<std::size_t width>
 struct wuint {
+	static constexpr wuint<width> min() {
+		return wuint<width>(0);
+	}
+
+	static constexpr wuint<width> max() {
+		wuint<width> res(0);
+		res.cells.fill(-1);
+		return res;
+	}
+
 	constexpr explicit wuint(std::uint32_t c) : cells{c} {}
 	constexpr explicit wuint(std::string_view sv);
 
