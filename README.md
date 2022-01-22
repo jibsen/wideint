@@ -73,8 +73,8 @@ it is possible to perform some signed computations using `wuint`, because
 the bit patterns can be interpreted as two's complement representations.
 
 Specifically, operations like plus, minus, and multiply between wuints should
-work. For other computations there are functions `abs()`, `idiv()`, `imod()`,
-`shiftar()`, and a `is_negative()` method.
+work. For other computations there are functions `iabs()`, `idiv()`,
+`imod()`, `shiftar()`, and a `is_negative()` method.
 
 ~~~.cpp
 #include <iostream>
@@ -93,7 +93,7 @@ constexpr wuint<width> gcd(const wuint<width> &x, const wuint<width> &y)
 		a = std::exchange(b, imod(a, b));
 	}
 
-	return abs(a);
+	return iabs(a);
 }
 
 int main() {

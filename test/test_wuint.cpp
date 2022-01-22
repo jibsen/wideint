@@ -965,13 +965,13 @@ TEST_CASE("setbit", "[wuint]") {
 	REQUIRE(wuint96("0").setbit(95) == wuint96("0x800000000000000000000000"));
 }
 
-TEST_CASE("abs", "[wuint]") {
-	REQUIRE(abs(wuint96("0")) == wuint96("0"));
-	REQUIRE(abs(wuint96("1")) == wuint96("1"));
-	REQUIRE(abs(wuint96("-1")) == wuint96("1"));
-	REQUIRE(abs(wuint96("0x7FFFFFFFFFFFFFFFFFFFFFFF")) == wuint96("0x7FFFFFFFFFFFFFFFFFFFFFFF"));
-	REQUIRE(abs(wuint96("0x800000000000000000000000")) == wuint96("0x800000000000000000000000"));
-	REQUIRE(abs(wuint96("0x800000000000000000000001")) == wuint96("0x7FFFFFFFFFFFFFFFFFFFFFFF"));
+TEST_CASE("iabs", "[wuint]") {
+	REQUIRE(iabs(wuint96("0")) == wuint96("0"));
+	REQUIRE(iabs(wuint96("1")) == wuint96("1"));
+	REQUIRE(iabs(wuint96("-1")) == wuint96("1"));
+	REQUIRE(iabs(wuint96("0x7FFFFFFFFFFFFFFFFFFFFFFF")) == wuint96("0x7FFFFFFFFFFFFFFFFFFFFFFF"));
+	REQUIRE(iabs(wuint96("0x800000000000000000000000")) == wuint96("0x800000000000000000000000"));
+	REQUIRE(iabs(wuint96("0x800000000000000000000001")) == wuint96("0x7FFFFFFFFFFFFFFFFFFFFFFF"));
 }
 
 TEST_CASE("idiv", "[wuint]") {

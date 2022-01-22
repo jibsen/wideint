@@ -736,7 +736,7 @@ constexpr wuint<width> operator^(std::uint32_t c, const wuint<width> &rhs)
 }
 
 template<std::size_t width>
-constexpr wuint<width> abs(const wuint<width> &obj)
+constexpr wuint<width> iabs(const wuint<width> &obj)
 {
 	return obj.is_negative() ? -obj : obj;
 }
@@ -744,7 +744,7 @@ constexpr wuint<width> abs(const wuint<width> &obj)
 template<std::size_t width>
 constexpr wuint<width> idiv(const wuint<width> &lhs, const wuint<width> &rhs)
 {
-	wuint<width> res = abs(lhs) / abs(rhs);
+	wuint<width> res = iabs(lhs) / iabs(rhs);
 
 	return lhs.is_negative() != rhs.is_negative() ? -res : res;
 }
@@ -752,7 +752,7 @@ constexpr wuint<width> idiv(const wuint<width> &lhs, const wuint<width> &rhs)
 template<std::size_t width>
 constexpr wuint<width> imod(const wuint<width> &lhs, const wuint<width> &rhs)
 {
-	wuint<width> res = abs(lhs) % abs(rhs);
+	wuint<width> res = iabs(lhs) % iabs(rhs);
 
 	return lhs.is_negative() ? -res : res;
 }
