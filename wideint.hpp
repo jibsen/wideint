@@ -798,7 +798,8 @@ constexpr std::string to_string(const wuint<width> &obj)
 	std::string res;
 
 	for (wuint<width> tmp = obj; !tmp.is_zero(); tmp /= 10) {
-		res.push_back((tmp % 10) + '0');
+		std::uint32_t digit = tmp % 10;
+		res.push_back('0' + digit);
 	}
 
 	std::ranges::reverse(res);
@@ -806,10 +807,10 @@ constexpr std::string to_string(const wuint<width> &obj)
 	return res;
 }
 
-template<std::size_t width>
-constexpr wuint<width> from_string(std::string_view sv)
+template<typename T>
+constexpr T from_string(std::string_view sv)
 {
-	wuint<width> res(0);
+	T res(0);
 
 	bool negative = false;
 
@@ -853,7 +854,7 @@ constexpr wuint<width> from_string(std::string_view sv)
 template<std::size_t width>
 constexpr wuint<width>::wuint(std::string_view sv)
 {
-	*this = from_string<width>(sv);
+	*this = from_string<wuint<width>>(sv);
 }
 
 template<std::size_t width>
@@ -901,7 +902,7 @@ std::istream &operator>>(std::istream &is, wuint<width> &obj)
 		}
 	}
 
-	obj = from_string<width>(s);
+	obj = from_string<wuint<width>>(s);
 
 	return is;
 }
