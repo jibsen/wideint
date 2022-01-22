@@ -891,7 +891,7 @@ std::istream &operator>>(std::istream &is, wuint<width> &obj)
 
 	s.push_back(ch);
 
-	while (is.get(ch)) {
+	while (std::istream::traits_type::not_eof(is.peek()) && is.get(ch)) {
 		if (ch >= '0' && ch <= '9') {
 			s.push_back(ch);
 		}
