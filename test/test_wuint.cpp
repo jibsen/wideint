@@ -107,7 +107,7 @@ constexpr wuint<width> modexp(const wuint<width> &a, const wuint<width> &x, cons
 	return res;
 }
 
-TEST_CASE("initialize from string", "[wuint]") {
+TEST_CASE("initialize wuint from string", "[wuint]") {
 	constexpr wuint32 zero32("0");
 	constexpr wuint64 zero64("0");
 	constexpr wuint96 zero96("0");
@@ -244,7 +244,7 @@ TEST_CASE("assign from uint32_t", "[wuint]") {
 	}
 }
 
-TEST_CASE("bitwise complement", "[wuint]") {
+TEST_CASE("wuint bitwise complement", "[wuint]") {
 	REQUIRE(~wuint32("0") == wuint32("0xFFFFFFFF"));
 	REQUIRE(~wuint64("0") == wuint64("0xFFFFFFFFFFFFFFFF"));
 	REQUIRE(~wuint96("0") == wuint96("0xFFFFFFFFFFFFFFFFFFFFFFFF"));
@@ -258,7 +258,7 @@ TEST_CASE("bitwise complement", "[wuint]") {
 	REQUIRE(~wuint96("0xF0F0F0F0F0F0F0F0F0F0F0F0") == wuint96("0x0F0F0F0F0F0F0F0F0F0F0F0F"));
 }
 
-TEST_CASE("unary minus", "[wuint]") {
+TEST_CASE("wuint unary minus", "[wuint]") {
 	REQUIRE(-wuint32("0") == wuint32("0"));
 	REQUIRE(-wuint64("0") == wuint64("0"));
 	REQUIRE(-wuint96("0") == wuint96("0"));
@@ -284,7 +284,7 @@ TEST_CASE("unary minus", "[wuint]") {
 	REQUIRE(-wuint96("0x800000000000000000000000") == wuint96("0x800000000000000000000000"));
 }
 
-TEST_CASE("increment/decrement 32", "[wuint]") {
+TEST_CASE("wuint increment/decrement 32", "[wuint]") {
 	auto str = GENERATE(as<std::string>{},
 		"0x00000001", "0x7FFFFFFF", "0x80000000", "0x80000001", "0xFFFFFFFF"
 	);
@@ -318,7 +318,7 @@ TEST_CASE("increment/decrement 32", "[wuint]") {
 	}
 }
 
-TEST_CASE("increment/decrement 96", "[wuint]") {
+TEST_CASE("wuint increment/decrement 96", "[wuint]") {
 	auto str = GENERATE(as<std::string>{},
 		"0x000000000000000000000001",
 		"0x7FFFFFFFFFFFFFFFFFFFFFFF",
@@ -356,7 +356,7 @@ TEST_CASE("increment/decrement 96", "[wuint]") {
 	}
 }
 
-TEST_CASE("left shift", "[wuint]") {
+TEST_CASE("wuint left shift", "[wuint]") {
 	REQUIRE((wuint32("0x01234567") << 4) == wuint32("0x12345670"));
 	REQUIRE((wuint64("0x0123456712345678") << 4) == wuint64("0x1234567123456780"));
 	REQUIRE((wuint96("0x012345671234567823456789") << 4) == wuint96("0x123456712345678234567890"));
@@ -373,7 +373,7 @@ TEST_CASE("left shift", "[wuint]") {
 	REQUIRE((wuint256("0x0123456712345678234567893456789A456789AB56789ABC6789ABCD789ABCDE") << 228) == wuint256("0x89ABCDE000000000000000000000000000000000000000000000000000000000"));
 }
 
-TEST_CASE("right shift", "[wuint]") {
+TEST_CASE("wuint right shift", "[wuint]") {
 	REQUIRE((wuint32("0x01234567") >> 4) == wuint32("0x00123456"));
 	REQUIRE((wuint64("0x0123456712345678") >> 4) == wuint64("0x0012345671234567"));
 	REQUIRE((wuint96("0x012345671234567823456789") >> 4) == wuint96("0x001234567123456782345678"));
@@ -900,7 +900,7 @@ TEST_CASE("wuint uint32 bitwise xor", "[wuint]") {
 	REQUIRE((0x3C3C3C3C ^ wuint96("0xAAAAAAAAAAAAAAAAAAAAAAAA")) == wuint96("0xAAAAAAAAAAAAAAAA96969696"));
 }
 
-TEST_CASE("is_zero", "[wuint]") {
+TEST_CASE("wuint is_zero", "[wuint]") {
 	REQUIRE(!wuint32("1").is_zero());
 	REQUIRE(!wuint64("1").is_zero());
 	REQUIRE(!wuint96("1").is_zero());
@@ -914,7 +914,7 @@ TEST_CASE("is_zero", "[wuint]") {
 	REQUIRE(wuint96("0").is_zero());
 }
 
-TEST_CASE("is_negative", "[wuint]") {
+TEST_CASE("wuint is_negative", "[wuint]") {
 	REQUIRE(!wuint32("0").is_negative());
 	REQUIRE(!wuint64("0").is_negative());
 	REQUIRE(!wuint96("0").is_negative());
@@ -932,7 +932,7 @@ TEST_CASE("is_negative", "[wuint]") {
 	REQUIRE(wuint96("0x800000000000000000000000").is_negative());
 }
 
-TEST_CASE("log2", "[wuint]") {
+TEST_CASE("wuint log2", "[wuint]") {
 	REQUIRE(wuint96("0").log2() == 0);
 	REQUIRE(wuint96("1").log2() == 1);
 	REQUIRE(wuint96("2").log2() == 2);
@@ -941,7 +941,7 @@ TEST_CASE("log2", "[wuint]") {
 	REQUIRE(wuint96("-1").log2() == 96);
 }
 
-TEST_CASE("getbit", "[wuint]") {
+TEST_CASE("wuint getbit", "[wuint]") {
 	REQUIRE(wuint96("0").getbit(0) == 0);
 	REQUIRE(wuint96("1").getbit(0) == 1);
 	REQUIRE(wuint96("2").getbit(0) == 0);
@@ -954,7 +954,7 @@ TEST_CASE("getbit", "[wuint]") {
 	REQUIRE(wuint96("0x800000000000000000000000").getbit(95) == 1);
 }
 
-TEST_CASE("setbit", "[wuint]") {
+TEST_CASE("wuint setbit", "[wuint]") {
 	REQUIRE(wuint96("0").setbit(0) == wuint96("1"));
 	REQUIRE(wuint96("0").setbit(1) == wuint96("2"));
 	REQUIRE(wuint96("1").setbit(0) == wuint96("1"));
@@ -965,7 +965,7 @@ TEST_CASE("setbit", "[wuint]") {
 	REQUIRE(wuint96("0").setbit(95) == wuint96("0x800000000000000000000000"));
 }
 
-TEST_CASE("iabs", "[wuint]") {
+TEST_CASE("wuint iabs", "[wuint]") {
 	REQUIRE(iabs(wuint96("0")) == wuint96("0"));
 	REQUIRE(iabs(wuint96("1")) == wuint96("1"));
 	REQUIRE(iabs(wuint96("-1")) == wuint96("1"));
@@ -974,7 +974,7 @@ TEST_CASE("iabs", "[wuint]") {
 	REQUIRE(iabs(wuint96("0x800000000000000000000001")) == wuint96("0x7FFFFFFFFFFFFFFFFFFFFFFF"));
 }
 
-TEST_CASE("idiv", "[wuint]") {
+TEST_CASE("wuint wuint idiv", "[wuint]") {
 	REQUIRE(idiv(wuint32("456"), wuint32("123")) == 456 / 123);
 	REQUIRE(idiv(wuint32("456"), -wuint32("123")) == 456 / -123);
 	REQUIRE(idiv(-wuint32("456"), wuint32("123")) == -456 / 123);
@@ -1009,7 +1009,7 @@ TEST_CASE("idiv", "[wuint]") {
 	REQUIRE(idiv(wuint96("-1"), wuint96("-1")) == wuint96("1"));
 }
 
-TEST_CASE("imod", "[wuint]") {
+TEST_CASE("wuint wuint imod", "[wuint]") {
 	REQUIRE(imod(wuint32("456"), wuint32("123")) == 456 % 123);
 	REQUIRE(imod(wuint32("456"), -wuint32("123")) == 456 % -123);
 	REQUIRE(imod(-wuint32("456"), wuint32("123")) == -456 % 123);
@@ -1028,7 +1028,7 @@ TEST_CASE("imod", "[wuint]") {
 	REQUIRE(imod(wuint96("-1"), wuint96("-2")) == wuint96("-1"));
 }
 
-TEST_CASE("shiftar", "[wuint]") {
+TEST_CASE("wuint shiftar", "[wuint]") {
 	REQUIRE(shiftar(wuint32("0x01234567"), 4) == wuint32("0x00123456"));
 	REQUIRE(shiftar(wuint64("0x0123456712345678"), 4) == wuint64("0x0012345671234567"));
 	REQUIRE(shiftar(wuint96("0x012345671234567823456789"), 4) == wuint96("0x001234567123456782345678"));
@@ -1062,7 +1062,7 @@ TEST_CASE("shiftar", "[wuint]") {
 	REQUIRE(shiftar(wuint256("0x8123456712345678234567893456789A456789AB56789ABC6789ABCD789ABCDE"), 228) == wuint256("0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF8123456"));
 }
 
-TEST_CASE("stream output", "[wuint]") {
+TEST_CASE("wuint stream output", "[wuint]") {
 	auto str = GENERATE(as<std::string>{},
 		"0",
 		"1",
@@ -1083,7 +1083,7 @@ TEST_CASE("stream output", "[wuint]") {
 	}
 }
 
-TEST_CASE("stream input", "[wuint]") {
+TEST_CASE("wuint stream input", "[wuint]") {
 	auto str = GENERATE(as<std::string>{},
 		"0",
 		"1",
@@ -1123,13 +1123,13 @@ TEST_CASE("std::hash<wuint>", "[wuint]") {
 	REQUIRE(set.size() == 4);
 }
 
-TEST_CASE("factorial", "[wuint]") {
+TEST_CASE("wuint factorial", "[wuint]") {
 	REQUIRE(fac(50) == wuint256("30414093201713378043612608166064768844377641568960512000000000000"));
 
 	REQUIRE(fac(34) / fac(30) == 34 * 33 * 32 * 31);
 }
 
-TEST_CASE("decrypt", "[wuint]") {
+TEST_CASE("wuint decrypt", "[wuint]") {
 	constexpr wuint256 p("9223372036854775337");
 	constexpr wuint256 q("4611686018427387847");
 
