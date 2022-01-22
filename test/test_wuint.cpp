@@ -25,7 +25,6 @@
 #include <unordered_set>
 #include <vector>
 
-#define CATCH_CONFIG_MAIN
 #include "catch.hpp"
 
 using wideint::wuint;
