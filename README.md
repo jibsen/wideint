@@ -55,8 +55,8 @@ Details
 -------
 
 The unsigned integer type `wuint` stores its value in a `std::array` of
-`std::uint32_t`. It takes the size of this array as a template argument,
-so a `wuint<3>`, for example, stores a 96-bit value, while a `wuint<4>`
+`std::uint32_t`. It takes the size of this array as a template argument.
+So a `wuint<3>`, for example, stores a 96-bit value, while a `wuint<4>`
 stores a 128-bit value.
 
 While it is possible to create a `wuint` with 32- or 64 bits, use the
@@ -72,9 +72,9 @@ The current version of wideint does not include a signed integer type. But
 it is possible to perform some signed computations using `wuint`, because
 the bit patterns can be interpreted as two's complement representations.
 
-Specifically, operations other than division, modulus, right-shift, and
-comparisons should work. There are functions `idiv()`, `imod()`, `shiftar()`,
-and a `is_negative()` method for performing some of these.
+Specifically, operations like plus, minus, and multiply between wuints should
+work. For other computations there are functions `abs()`, `idiv()`, `imod()`,
+`shiftar()`, and a `is_negative()` method.
 
 ~~~.cpp
 #include <iostream>
