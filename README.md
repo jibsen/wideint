@@ -62,6 +62,10 @@ stores a 128-bit value.
 While it is possible to create a `wuint` with 32- or 64 bits, use the
 built-in types `std::uint32_t` and `std::uint64_t` instead.
 
+As special cases, modulus (`wuint % uint32_t`) and bitwise AND
+(`wuint & uint32_t`) with a `std::uint32_t` on the right return a
+`std::uint32_t` instead of a `wuint`.
+
 Most operations are `constexpr`.
 
 
