@@ -87,7 +87,7 @@ struct wuint {
 
 	constexpr explicit operator bool() const { return !is_zero(); }
 
-	constexpr bool is_negative() const {
+	constexpr bool is_inegative() const {
 		return cells.back() & (std::uint32_t(1) << 31);
 	}
 
@@ -738,7 +738,7 @@ constexpr wuint<width> operator^(std::uint32_t c, const wuint<width> &rhs)
 template<std::size_t width>
 constexpr wuint<width> iabs(const wuint<width> &obj)
 {
-	return obj.is_negative() ? -obj : obj;
+	return obj.is_inegative() ? -obj : obj;
 }
 
 template<std::size_t width>
@@ -746,7 +746,7 @@ constexpr wuint<width> idiv(const wuint<width> &lhs, const wuint<width> &rhs)
 {
 	wuint<width> res = iabs(lhs) / iabs(rhs);
 
-	return lhs.is_negative() != rhs.is_negative() ? -res : res;
+	return lhs.is_inegative() != rhs.is_inegative() ? -res : res;
 }
 
 template<std::size_t width>
@@ -754,7 +754,7 @@ constexpr wuint<width> imod(const wuint<width> &lhs, const wuint<width> &rhs)
 {
 	wuint<width> res = iabs(lhs) % iabs(rhs);
 
-	return lhs.is_negative() ? -res : res;
+	return lhs.is_inegative() ? -res : res;
 }
 
 template<std::size_t width>
@@ -765,7 +765,7 @@ constexpr wuint<width> shiftar(const wuint<width> &lhs, unsigned int shift)
 	std::size_t pos = shift / 32;
 	std::size_t offs = shift % 32;
 
-	std::uint32_t fill = res.is_negative() ? -1 : 0;
+	std::uint32_t fill = res.is_inegative() ? -1 : 0;
 
 	std::uint64_t w = static_cast<std::uint64_t>(res.cells[pos]) << 32;
 	res.cells[pos] = fill;

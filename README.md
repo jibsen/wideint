@@ -78,7 +78,7 @@ the bit patterns can be interpreted as two's complement representations.
 
 Specifically, operations like plus, minus, and multiply between wuints should
 work. For other computations there are functions `iabs()`, `idiv()`,
-`imod()`, `shiftar()`, and a `is_negative()` method.
+`imod()`, `shiftar()`, and a `is_inegative()` method.
 
 ~~~.cpp
 #include <iostream>

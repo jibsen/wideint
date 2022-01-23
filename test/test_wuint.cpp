@@ -82,7 +82,7 @@ constexpr wuint<width> modinv(const wuint<width> &x, const wuint<width> &n)
 		return wuint<width>(0);
 	}
 
-	while (b.is_negative()) {
+	while (b.is_inegative()) {
 		b += n;
 	}
 
@@ -1399,22 +1399,22 @@ TEST_CASE("wuint is_zero", "[wuint]") {
 	REQUIRE(wuint96("0").is_zero());
 }
 
-TEST_CASE("wuint is_negative", "[wuint]") {
-	REQUIRE(!wuint32("0").is_negative());
-	REQUIRE(!wuint64("0").is_negative());
-	REQUIRE(!wuint96("0").is_negative());
+TEST_CASE("wuint is_inegative", "[wuint]") {
+	REQUIRE(!wuint32("0").is_inegative());
+	REQUIRE(!wuint64("0").is_inegative());
+	REQUIRE(!wuint96("0").is_inegative());
 
-	REQUIRE(wuint32("-1").is_negative());
-	REQUIRE(wuint64("-1").is_negative());
-	REQUIRE(wuint96("-1").is_negative());
+	REQUIRE(wuint32("-1").is_inegative());
+	REQUIRE(wuint64("-1").is_inegative());
+	REQUIRE(wuint96("-1").is_inegative());
 
-	REQUIRE(!wuint32("0x7FFFFFFF").is_negative());
-	REQUIRE(!wuint64("0x7FFFFFFFFFFFFFFF").is_negative());
-	REQUIRE(!wuint96("0x7FFFFFFFFFFFFFFFFFFFFFFF").is_negative());
+	REQUIRE(!wuint32("0x7FFFFFFF").is_inegative());
+	REQUIRE(!wuint64("0x7FFFFFFFFFFFFFFF").is_inegative());
+	REQUIRE(!wuint96("0x7FFFFFFFFFFFFFFFFFFFFFFF").is_inegative());
 
-	REQUIRE(wuint32("0x80000000").is_negative());
-	REQUIRE(wuint64("0x8000000000000000").is_negative());
-	REQUIRE(wuint96("0x800000000000000000000000").is_negative());
+	REQUIRE(wuint32("0x80000000").is_inegative());
+	REQUIRE(wuint64("0x8000000000000000").is_inegative());
+	REQUIRE(wuint96("0x800000000000000000000000").is_inegative());
 }
 
 TEST_CASE("wuint log2", "[wuint]") {
