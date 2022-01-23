@@ -484,25 +484,98 @@ TEST_CASE("wuint wuint divide", "[wuint]") {
 	REQUIRE(wuint64("10000") / wuint64("10000000000000000") == wuint64("0"));
 	REQUIRE(wuint96("10000") / wuint96("1000000000000000000000000") == wuint96("0"));
 
-	REQUIRE(wuint32::max() / wuint32("1") == wuint32::max());
-	REQUIRE(wuint64::max() / wuint64("1") == wuint64::max());
-	REQUIRE(wuint96::max() / wuint96("1") == wuint96::max());
+	constexpr auto wuint32_7F = wuint32::max() / wuint32("2");
+	constexpr auto wuint64_7F = wuint64::max() / wuint64("2");
+	constexpr auto wuint96_7F = wuint96::max() / wuint96("2");
+	constexpr auto wuint32_80 = wuint32_7F + wuint32("1");
+	constexpr auto wuint64_80 = wuint64_7F + wuint64("1");
+	constexpr auto wuint96_80 = wuint96_7F + wuint96("1");
+	constexpr auto wuint32_81 = wuint32_80 + wuint32("1");
+	constexpr auto wuint64_81 = wuint64_80 + wuint64("1");
+	constexpr auto wuint96_81 = wuint96_80 + wuint96("1");
+	constexpr auto wuint32_FF = wuint32::max();
+	constexpr auto wuint64_FF = wuint64::max();
+	constexpr auto wuint96_FF = wuint96::max();
 
-	REQUIRE(wuint32::max() / wuint32::max() == wuint32("1"));
-	REQUIRE(wuint64::max() / wuint64::max() == wuint64("1"));
-	REQUIRE(wuint96::max() / wuint96::max() == wuint96("1"));
+	// 7F / 7F
+	REQUIRE(wuint32_7F / wuint32_7F == wuint32("1"));
+	REQUIRE(wuint64_7F / wuint64_7F == wuint64("1"));
+	REQUIRE(wuint96_7F / wuint96_7F == wuint96("1"));
 
-	REQUIRE((wuint32::max() - wuint32("1")) / wuint32::max() == wuint32("0"));
-	REQUIRE((wuint64::max() - wuint64("1")) / wuint64::max() == wuint64("0"));
-	REQUIRE((wuint96::max() - wuint96("1")) / wuint96::max() == wuint96("0"));
+	// 7F / 80
+	REQUIRE(wuint32_7F / wuint32_80 == wuint32("0"));
+	REQUIRE(wuint64_7F / wuint64_80 == wuint64("0"));
+	REQUIRE(wuint96_7F / wuint96_80 == wuint96("0"));
 
-	REQUIRE(wuint32::max() / (wuint32::max() / wuint32("2")) == wuint32("2"));
-	REQUIRE(wuint64::max() / (wuint64::max() / wuint64("2")) == wuint64("2"));
-	REQUIRE(wuint96::max() / (wuint96::max() / wuint96("2")) == wuint96("2"));
+	// 7F / 81
+	REQUIRE(wuint32_7F / wuint32_81 == wuint32("0"));
+	REQUIRE(wuint64_7F / wuint64_81 == wuint64("0"));
+	REQUIRE(wuint96_7F / wuint96_81 == wuint96("0"));
 
-	REQUIRE(wuint32::max() / (wuint32::max() / wuint32("2") + wuint32("1")) == wuint32("1"));
-	REQUIRE(wuint64::max() / (wuint64::max() / wuint64("2") + wuint64("1")) == wuint64("1"));
-	REQUIRE(wuint96::max() / (wuint96::max() / wuint96("2") + wuint96("1")) == wuint96("1"));
+	// 7F / FF
+	REQUIRE(wuint32_7F / wuint32_FF == wuint32("0"));
+	REQUIRE(wuint64_7F / wuint64_FF == wuint64("0"));
+	REQUIRE(wuint96_7F / wuint96_FF == wuint96("0"));
+
+	// 80 / 7F
+	REQUIRE(wuint32_80 / wuint32_7F == wuint32("1"));
+	REQUIRE(wuint64_80 / wuint64_7F == wuint64("1"));
+	REQUIRE(wuint96_80 / wuint96_7F == wuint96("1"));
+
+	// 80 / 80
+	REQUIRE(wuint32_80 / wuint32_80 == wuint32("1"));
+	REQUIRE(wuint64_80 / wuint64_80 == wuint64("1"));
+	REQUIRE(wuint96_80 / wuint96_80 == wuint96("1"));
+
+	// 80 / 81
+	REQUIRE(wuint32_80 / wuint32_81 == wuint32("0"));
+	REQUIRE(wuint64_80 / wuint64_81 == wuint64("0"));
+	REQUIRE(wuint96_80 / wuint96_81 == wuint96("0"));
+
+	// 80 / FF
+	REQUIRE(wuint32_80 / wuint32_FF == wuint32("0"));
+	REQUIRE(wuint64_80 / wuint64_FF == wuint64("0"));
+	REQUIRE(wuint96_80 / wuint96_FF == wuint96("0"));
+
+	// 81 / 7F
+	REQUIRE(wuint32_81 / wuint32_7F == wuint32("1"));
+	REQUIRE(wuint64_81 / wuint64_7F == wuint64("1"));
+	REQUIRE(wuint96_81 / wuint96_7F == wuint96("1"));
+
+	// 81 / 80
+	REQUIRE(wuint32_81 / wuint32_80 == wuint32("1"));
+	REQUIRE(wuint64_81 / wuint64_80 == wuint64("1"));
+	REQUIRE(wuint96_81 / wuint96_80 == wuint96("1"));
+
+	// 81 / 81
+	REQUIRE(wuint32_81 / wuint32_81 == wuint32("1"));
+	REQUIRE(wuint64_81 / wuint64_81 == wuint64("1"));
+	REQUIRE(wuint96_81 / wuint96_81 == wuint96("1"));
+
+	// 81 / FF
+	REQUIRE(wuint32_81 / wuint32_FF == wuint32("0"));
+	REQUIRE(wuint64_81 / wuint64_FF == wuint64("0"));
+	REQUIRE(wuint96_81 / wuint96_FF == wuint96("0"));
+
+	// FF / 7F
+	REQUIRE(wuint32_FF / wuint32_7F == wuint32("2"));
+	REQUIRE(wuint64_FF / wuint64_7F == wuint64("2"));
+	REQUIRE(wuint96_FF / wuint96_7F == wuint96("2"));
+
+	// FF / 80
+	REQUIRE(wuint32_FF / wuint32_80 == wuint32("1"));
+	REQUIRE(wuint64_FF / wuint64_80 == wuint64("1"));
+	REQUIRE(wuint96_FF / wuint96_80 == wuint96("1"));
+
+	// FF / 81
+	REQUIRE(wuint32_FF / wuint32_81 == wuint32("1"));
+	REQUIRE(wuint64_FF / wuint64_81 == wuint64("1"));
+	REQUIRE(wuint96_FF / wuint96_81 == wuint96("1"));
+
+	// FF / FF
+	REQUIRE(wuint32_FF / wuint32_FF == wuint32("1"));
+	REQUIRE(wuint64_FF / wuint64_FF == wuint64("1"));
+	REQUIRE(wuint96_FF / wuint96_FF == wuint96("1"));
 }
 
 TEST_CASE("wuint wuint modulus", "[wuint]") {
@@ -520,25 +593,98 @@ TEST_CASE("wuint wuint modulus", "[wuint]") {
 	REQUIRE(wuint64("10000") % wuint64("10000000000000000") == 10000);
 	REQUIRE(wuint96("10000") % wuint96("1000000000000000000000000") == 10000);
 
-	REQUIRE(wuint32::max() % wuint32("1") == wuint32("0"));
-	REQUIRE(wuint64::max() % wuint64("1") == wuint64("0"));
-	REQUIRE(wuint96::max() % wuint96("1") == wuint96("0"));
+	constexpr auto wuint32_7F = wuint32::max() / wuint32("2");
+	constexpr auto wuint64_7F = wuint64::max() / wuint64("2");
+	constexpr auto wuint96_7F = wuint96::max() / wuint96("2");
+	constexpr auto wuint32_80 = wuint32_7F + wuint32("1");
+	constexpr auto wuint64_80 = wuint64_7F + wuint64("1");
+	constexpr auto wuint96_80 = wuint96_7F + wuint96("1");
+	constexpr auto wuint32_81 = wuint32_80 + wuint32("1");
+	constexpr auto wuint64_81 = wuint64_80 + wuint64("1");
+	constexpr auto wuint96_81 = wuint96_80 + wuint96("1");
+	constexpr auto wuint32_FF = wuint32::max();
+	constexpr auto wuint64_FF = wuint64::max();
+	constexpr auto wuint96_FF = wuint96::max();
 
-	REQUIRE(wuint32::max() % wuint32::max() == wuint32("0"));
-	REQUIRE(wuint64::max() % wuint64::max() == wuint64("0"));
-	REQUIRE(wuint96::max() % wuint96::max() == wuint96("0"));
+	// 7F % 7F
+	REQUIRE(wuint32_7F % wuint32_7F == wuint32("0"));
+	REQUIRE(wuint64_7F % wuint64_7F == wuint64("0"));
+	REQUIRE(wuint96_7F % wuint96_7F == wuint96("0"));
 
-	REQUIRE((wuint32::max() - wuint32("1")) % wuint32::max() == wuint32::max() - wuint32("1"));
-	REQUIRE((wuint64::max() - wuint64("1")) % wuint64::max() == wuint64::max() - wuint64("1"));
-	REQUIRE((wuint96::max() - wuint96("1")) % wuint96::max() == wuint96::max() - wuint96("1"));
+	// 7F % 80
+	REQUIRE(wuint32_7F % wuint32_80 == wuint32_7F);
+	REQUIRE(wuint64_7F % wuint64_80 == wuint64_7F);
+	REQUIRE(wuint96_7F % wuint96_80 == wuint96_7F);
 
-	REQUIRE(wuint32::max() % (wuint32::max() / wuint32("2")) == wuint32("1"));
-	REQUIRE(wuint64::max() % (wuint64::max() / wuint64("2")) == wuint64("1"));
-	REQUIRE(wuint96::max() % (wuint96::max() / wuint96("2")) == wuint96("1"));
+	// 7F % 81
+	REQUIRE(wuint32_7F % wuint32_81 == wuint32_7F);
+	REQUIRE(wuint64_7F % wuint64_81 == wuint64_7F);
+	REQUIRE(wuint96_7F % wuint96_81 == wuint96_7F);
 
-	REQUIRE(wuint32::max() % (wuint32::max() / wuint32("2") + wuint32("1")) == wuint32::max() / wuint32("2"));
-	REQUIRE(wuint64::max() % (wuint64::max() / wuint64("2") + wuint64("1")) == wuint64::max() / wuint64("2"));
-	REQUIRE(wuint96::max() % (wuint96::max() / wuint96("2") + wuint96("1")) == wuint96::max() / wuint96("2"));
+	// 7F % FF
+	REQUIRE(wuint32_7F % wuint32_FF == wuint32_7F);
+	REQUIRE(wuint64_7F % wuint64_FF == wuint64_7F);
+	REQUIRE(wuint96_7F % wuint96_FF == wuint96_7F);
+
+	// 80 % 7F
+	REQUIRE(wuint32_80 % wuint32_7F == wuint32("1"));
+	REQUIRE(wuint64_80 % wuint64_7F == wuint64("1"));
+	REQUIRE(wuint96_80 % wuint96_7F == wuint96("1"));
+
+	// 80 % 80
+	REQUIRE(wuint32_80 % wuint32_80 == wuint32("0"));
+	REQUIRE(wuint64_80 % wuint64_80 == wuint64("0"));
+	REQUIRE(wuint96_80 % wuint96_80 == wuint96("0"));
+
+	// 80 % 81
+	REQUIRE(wuint32_80 % wuint32_81 == wuint32_80);
+	REQUIRE(wuint64_80 % wuint64_81 == wuint64_80);
+	REQUIRE(wuint96_80 % wuint96_81 == wuint96_80);
+
+	// 80 % FF
+	REQUIRE(wuint32_80 % wuint32_FF == wuint32_80);
+	REQUIRE(wuint64_80 % wuint64_FF == wuint64_80);
+	REQUIRE(wuint96_80 % wuint96_FF == wuint96_80);
+
+	// 81 % 7F
+	REQUIRE(wuint32_81 % wuint32_7F == wuint32("2"));
+	REQUIRE(wuint64_81 % wuint64_7F == wuint64("2"));
+	REQUIRE(wuint96_81 % wuint96_7F == wuint96("2"));
+
+	// 81 % 80
+	REQUIRE(wuint32_81 % wuint32_80 == wuint32("1"));
+	REQUIRE(wuint64_81 % wuint64_80 == wuint64("1"));
+	REQUIRE(wuint96_81 % wuint96_80 == wuint96("1"));
+
+	// 81 % 81
+	REQUIRE(wuint32_81 % wuint32_81 == wuint32("0"));
+	REQUIRE(wuint64_81 % wuint64_81 == wuint64("0"));
+	REQUIRE(wuint96_81 % wuint96_81 == wuint96("0"));
+
+	// 81 % FF
+	REQUIRE(wuint32_81 % wuint32_FF == wuint32_81);
+	REQUIRE(wuint64_81 % wuint64_FF == wuint64_81);
+	REQUIRE(wuint96_81 % wuint96_FF == wuint96_81);
+
+	// FF % 7F
+	REQUIRE(wuint32_FF % wuint32_7F == wuint32("1"));
+	REQUIRE(wuint64_FF % wuint64_7F == wuint64("1"));
+	REQUIRE(wuint96_FF % wuint96_7F == wuint96("1"));
+
+	// FF % 80
+	REQUIRE(wuint32_FF % wuint32_80 == wuint32_7F);
+	REQUIRE(wuint64_FF % wuint64_80 == wuint64_7F);
+	REQUIRE(wuint96_FF % wuint96_80 == wuint96_7F);
+
+	// FF % 81
+	REQUIRE(wuint32_FF % wuint32_81 == wuint32_7F - wuint32("1"));
+	REQUIRE(wuint64_FF % wuint64_81 == wuint64_7F - wuint64("1"));
+	REQUIRE(wuint96_FF % wuint96_81 == wuint96_7F - wuint96("1"));
+
+	// FF % FF
+	REQUIRE(wuint32_FF % wuint32_FF == wuint32("0"));
+	REQUIRE(wuint64_FF % wuint64_FF == wuint64("0"));
+	REQUIRE(wuint96_FF % wuint96_FF == wuint96("0"));
 }
 
 TEST_CASE("wuint wuint bitwise and", "[wuint]") {
@@ -712,30 +858,6 @@ TEST_CASE("wuint uint32 divide", "[wuint]") {
 	REQUIRE(wuint64("10000000000000000") / 10000 == wuint64("1000000000000"));
 	REQUIRE(wuint96("1000000000000000000000000") / 10000 == wuint96("100000000000000000000"));
 
-	REQUIRE(wuint32::max() / 1 == wuint32::max());
-	REQUIRE(wuint64::max() / 1 == wuint64::max());
-	REQUIRE(wuint96::max() / 1 == wuint96::max());
-
-	REQUIRE(wuint32::max() / 0xFFFFFFFF == wuint32("1"));
-	REQUIRE(wuint64::max() / 0xFFFFFFFF == wuint64("0x100000001"));
-	REQUIRE(wuint96::max() / 0xFFFFFFFF == wuint96("0x10000000100000001"));
-
-	REQUIRE((wuint32::max() - 1) / 0xFFFFFFFF == wuint32("0"));
-	REQUIRE((wuint64::max() - 1) / 0xFFFFFFFF == wuint64("0x100000000"));
-	REQUIRE((wuint96::max() - 1) / 0xFFFFFFFF == wuint96("0x10000000100000000"));
-
-	REQUIRE(wuint32::max() / 0x7FFFFFFF == wuint32("2"));
-	REQUIRE(wuint64::max() / 0x7FFFFFFF == wuint64("0x200000004"));
-	REQUIRE(wuint96::max() / 0x7FFFFFFF == wuint96("0x20000000400000008"));
-
-	REQUIRE(wuint32::max() / 0x80000000 == wuint32("1"));
-	REQUIRE(wuint64::max() / 0x80000000 == wuint64("0x1FFFFFFFF"));
-	REQUIRE(wuint96::max() / 0x80000000 == wuint96("0x1FFFFFFFFFFFFFFFF"));
-
-	REQUIRE(wuint32("-1") / 1 == wuint32("-1"));
-	REQUIRE(wuint64("-1") / 1 == wuint64("-1"));
-	REQUIRE(wuint96("-1") / 1 == wuint96("-1"));
-
 	REQUIRE(9999 / wuint32("10000") == wuint32("0"));
 	REQUIRE(10000 / wuint32("10000") == wuint32("1"));
 	REQUIRE(10001 / wuint32("10000") == wuint32("1"));
@@ -746,21 +868,226 @@ TEST_CASE("wuint uint32 divide", "[wuint]") {
 	REQUIRE(10000 / wuint64("10000000000000000") == wuint64("0"));
 	REQUIRE(10000 / wuint96("1000000000000000000000000") == wuint96("0"));
 
-	REQUIRE(0xFFFFFFFF / wuint32("1") == wuint32("0xFFFFFFFF"));
-	REQUIRE(0xFFFFFFFF / wuint64("1") == wuint64("0xFFFFFFFF"));
-	REQUIRE(0xFFFFFFFF / wuint96("1") == wuint96("0xFFFFFFFF"));
+	constexpr auto wuint32_7F = wuint32::max() / wuint32("2");
+	constexpr auto wuint64_7F = wuint64::max() / wuint64("2");
+	constexpr auto wuint96_7F = wuint96::max() / wuint96("2");
+	constexpr auto wuint32_80 = wuint32_7F + wuint32("1");
+	constexpr auto wuint64_80 = wuint64_7F + wuint64("1");
+	constexpr auto wuint96_80 = wuint96_7F + wuint96("1");
+	constexpr auto wuint32_81 = wuint32_80 + wuint32("1");
+	constexpr auto wuint64_81 = wuint64_80 + wuint64("1");
+	constexpr auto wuint96_81 = wuint96_80 + wuint96("1");
+	constexpr auto wuint32_FF = wuint32::max();
+	constexpr auto wuint64_FF = wuint64::max();
+	constexpr auto wuint96_FF = wuint96::max();
 
-	REQUIRE(0xFFFFFFFF / wuint32::max() == wuint32("1"));
-	REQUIRE(0xFFFFFFFF / wuint64::max() == wuint64("0"));
-	REQUIRE(0xFFFFFFFF / wuint96::max() == wuint96("0"));
+	std::uint32_t uint32_80 = std::numeric_limits<std::int32_t>::min();
+	std::uint32_t uint32_81 = -std::numeric_limits<std::int32_t>::max();
+	std::uint32_t uint32_FF = -1;
+	std::uint32_t uint32_01 = 1;
+	std::uint32_t uint32_7F = std::numeric_limits<std::int32_t>::max();
 
-	REQUIRE(0xFFFFFFFF / wuint32("0x7FFFFFFF") == wuint32("2"));
-	REQUIRE(0xFFFFFFFF / wuint64("0x7FFFFFFF") == wuint64("2"));
-	REQUIRE(0xFFFFFFFF / wuint96("0x7FFFFFFF") == wuint96("2"));
+	// 01 / 01
+	REQUIRE(wuint32("1") / uint32_01 == wuint32("1"));
+	REQUIRE(wuint64("1") / uint32_01 == wuint64("1"));
+	REQUIRE(wuint96("1") / uint32_01 == wuint96("1"));
 
-	REQUIRE(0xFFFFFFFF / wuint32("0x80000000") == wuint32("1"));
-	REQUIRE(0xFFFFFFFF / wuint64("0x80000000") == wuint64("1"));
-	REQUIRE(0xFFFFFFFF / wuint96("0x80000000") == wuint96("1"));
+	// 01 / 7F
+	REQUIRE(wuint32("1") / uint32_7F == wuint32("0"));
+	REQUIRE(wuint64("1") / uint32_7F == wuint64("0"));
+	REQUIRE(wuint96("1") / uint32_7F == wuint96("0"));
+
+	// 01 / 80
+	REQUIRE(wuint32("1") / uint32_80 == wuint32("0"));
+	REQUIRE(wuint64("1") / uint32_80 == wuint64("0"));
+	REQUIRE(wuint96("1") / uint32_80 == wuint96("0"));
+
+	// 01 / 81
+	REQUIRE(wuint32("1") / uint32_81 == wuint32("0"));
+	REQUIRE(wuint64("1") / uint32_81 == wuint64("0"));
+	REQUIRE(wuint96("1") / uint32_81 == wuint96("0"));
+
+	// 01 / FF
+	REQUIRE(wuint32("1") / uint32_FF == wuint32("0"));
+	REQUIRE(wuint64("1") / uint32_FF == wuint64("0"));
+	REQUIRE(wuint96("1") / uint32_FF == wuint96("0"));
+
+	// 7F / 01
+	REQUIRE(wuint32_7F / uint32_01 == wuint32_7F);
+	REQUIRE(wuint64_7F / uint32_01 == wuint64_7F);
+	REQUIRE(wuint96_7F / uint32_01 == wuint96_7F);
+
+	// 7F / 7F
+	REQUIRE(wuint32_7F / uint32_7F == wuint32("1"));
+	REQUIRE(wuint64_7F / uint32_7F == wuint64("0x100000002"));
+	REQUIRE(wuint96_7F / uint32_7F == wuint96("0x10000000200000004"));
+
+	// 7F / 80
+	REQUIRE(wuint32_7F / uint32_80 == wuint32("0"));
+	REQUIRE(wuint64_7F / uint32_80 == wuint64("0xFFFFFFFF"));
+	REQUIRE(wuint96_7F / uint32_80 == wuint96("0xFFFFFFFFFFFFFFFF"));
+
+	// 7F / 81
+	REQUIRE(wuint32_7F / uint32_81 == wuint32("0"));
+	REQUIRE(wuint64_7F / uint32_81 == wuint64("0xFFFFFFFE"));
+	REQUIRE(wuint96_7F / uint32_81 == wuint96("0xFFFFFFFE00000003"));
+
+	// 7F / FF
+	REQUIRE(wuint32_7F / uint32_FF == wuint32("0"));
+	REQUIRE(wuint64_7F / uint32_FF == wuint64("0x80000000"));
+	REQUIRE(wuint96_7F / uint32_FF == wuint96("0x8000000080000000"));
+
+	// 80 / 01
+	REQUIRE(wuint32_80 / uint32_01 == wuint32_80);
+	REQUIRE(wuint64_80 / uint32_01 == wuint64_80);
+	REQUIRE(wuint96_80 / uint32_01 == wuint96_80);
+
+	// 80 / 7F
+	REQUIRE(wuint32_80 / uint32_7F == wuint32("1"));
+	REQUIRE(wuint64_80 / uint32_7F == wuint64("0x100000002"));
+	REQUIRE(wuint96_80 / uint32_7F == wuint96("0x10000000200000004"));
+
+	// 80 / 80
+	REQUIRE(wuint32_80 / uint32_80 == wuint32("1"));
+	REQUIRE(wuint64_80 / uint32_80 == wuint64("0x100000000"));
+	REQUIRE(wuint96_80 / uint32_80 == wuint96("0x10000000000000000"));
+
+	// 80 / 81
+	REQUIRE(wuint32_80 / uint32_81 == wuint32("0"));
+	REQUIRE(wuint64_80 / uint32_81 == wuint64("0xFFFFFFFE"));
+	REQUIRE(wuint96_80 / uint32_81 == wuint96("0xFFFFFFFE00000003"));
+
+	// 80 / FF
+	REQUIRE(wuint32_80 / uint32_FF == wuint32("0"));
+	REQUIRE(wuint64_80 / uint32_FF == wuint64("0x80000000"));
+	REQUIRE(wuint96_80 / uint32_FF == wuint96("0x8000000080000000"));
+
+	// 81 / 01
+	REQUIRE(wuint32_81 / uint32_01 == wuint32_81);
+	REQUIRE(wuint64_81 / uint32_01 == wuint64_81);
+	REQUIRE(wuint96_81 / uint32_01 == wuint96_81);
+
+	// 81 / 7F
+	REQUIRE(wuint32_81 / uint32_7F == wuint32("1"));
+	REQUIRE(wuint64_81 / uint32_7F == wuint64("0x100000002"));
+	REQUIRE(wuint96_81 / uint32_7F == wuint96("0x10000000200000004"));
+
+	// 81 / 80
+	REQUIRE(wuint32_81 / uint32_80 == wuint32("1"));
+	REQUIRE(wuint64_81 / uint32_80 == wuint64("0x100000000"));
+	REQUIRE(wuint96_81 / uint32_80 == wuint96("0x10000000000000000"));
+
+	// 81 / 81
+	REQUIRE(wuint32_81 / uint32_81 == wuint32("1"));
+	REQUIRE(wuint64_81 / uint32_81 == wuint64("0xFFFFFFFE"));
+	REQUIRE(wuint96_81 / uint32_81 == wuint96("0xFFFFFFFE00000003"));
+
+	// 81 / FF
+	REQUIRE(wuint32_81 / uint32_FF == wuint32("0"));
+	REQUIRE(wuint64_81 / uint32_FF == wuint64("0x80000000"));
+	REQUIRE(wuint96_81 / uint32_FF == wuint96("0x8000000080000000"));
+
+	// FF / 01
+	REQUIRE(wuint32_FF / uint32_01 == wuint32_FF);
+	REQUIRE(wuint64_FF / uint32_01 == wuint64_FF);
+	REQUIRE(wuint96_FF / uint32_01 == wuint96_FF);
+
+	// FF / 7F
+	REQUIRE(wuint32_FF / uint32_7F == wuint32("2"));
+	REQUIRE(wuint64_FF / uint32_7F == wuint64("0x200000004"));
+	REQUIRE(wuint96_FF / uint32_7F == wuint96("0x20000000400000008"));
+
+	// FF / 80
+	REQUIRE(wuint32_FF / uint32_80 == wuint32("1"));
+	REQUIRE(wuint64_FF / uint32_80 == wuint64("0x1FFFFFFFF"));
+	REQUIRE(wuint96_FF / uint32_80 == wuint96("0x1FFFFFFFFFFFFFFFF"));
+
+	// FF / 81
+	REQUIRE(wuint32_FF / uint32_81 == wuint32("1"));
+	REQUIRE(wuint64_FF / uint32_81 == wuint64("0x1FFFFFFFC"));
+	REQUIRE(wuint96_FF / uint32_81 == wuint96("0x1FFFFFFFC00000007"));
+
+	// FF / FF
+	REQUIRE(wuint32_FF / uint32_FF == wuint32("1"));
+	REQUIRE(wuint64_FF / uint32_FF == wuint64("0x100000001"));
+	REQUIRE(wuint96_FF / uint32_FF == wuint96("0x10000000100000001"));
+
+	// 01 / 01
+	REQUIRE(uint32_01 / wuint32("1") == wuint32("1"));
+	REQUIRE(uint32_01 / wuint64("1") == wuint64("1"));
+	REQUIRE(uint32_01 / wuint96("1") == wuint96("1"));
+
+	// 01 / 7F
+	REQUIRE(uint32_01 / wuint32_7F == wuint32("0"));
+
+	// 01 / 80
+	REQUIRE(uint32_01 / wuint32_80 == wuint32("0"));
+
+	// 01 / 81
+	REQUIRE(uint32_01 / wuint32_81 == wuint32("0"));
+
+	// 01 / FF
+	REQUIRE(uint32_01 / wuint32_FF == wuint32("0"));
+
+	// 7F / 01
+	REQUIRE(uint32_7F / wuint32("1") == wuint32_7F);
+
+	// 7F / 7F
+	REQUIRE(uint32_7F / wuint32_7F == wuint32("1"));
+
+	// 7F / 80
+	REQUIRE(uint32_7F / wuint32_80 == wuint32("0"));
+
+	// 7F / 81
+	REQUIRE(uint32_7F / wuint32_81 == wuint32("0"));
+
+	// 7F / FF
+	REQUIRE(uint32_7F / wuint32_FF == wuint32("0"));
+
+	// 80 / 01
+	REQUIRE(uint32_80 / wuint32("1") == wuint32_80);
+
+	// 80 / 7F
+	REQUIRE(uint32_80 / wuint32_7F == wuint32("1"));
+
+	// 80 / 80
+	REQUIRE(uint32_80 / wuint32_80 == wuint32("1"));
+
+	// 80 / 81
+	REQUIRE(uint32_80 / wuint32_81 == wuint32("0"));
+
+	// 80 / FF
+	REQUIRE(uint32_80 / wuint32_FF == wuint32("0"));
+
+	// 81 / 01
+	REQUIRE(uint32_81 / wuint32("1") == wuint32_81);
+
+	// 81 / 7F
+	REQUIRE(uint32_81 / wuint32_7F == wuint32("1"));
+
+	// 81 / 80
+	REQUIRE(uint32_81 / wuint32_80 == wuint32("1"));
+
+	// 81 / 81
+	REQUIRE(uint32_81 / wuint32_81 == wuint32("1"));
+
+	// 81 / FF
+	REQUIRE(uint32_81 / wuint32_FF == wuint32("0"));
+
+	// FF / 01
+	REQUIRE(uint32_FF / wuint32("1") == wuint32_FF);
+
+	// FF / 7F
+	REQUIRE(uint32_FF / wuint32_7F == wuint32("2"));
+
+	// FF / 80
+	REQUIRE(uint32_FF / wuint32_80 == wuint32("1"));
+
+	// FF / 81
+	REQUIRE(uint32_FF / wuint32_81 == wuint32("1"));
+
+	// FF / FF
+	REQUIRE(uint32_FF / wuint32_FF == wuint32("1"));
 }
 
 TEST_CASE("wuint uint32 modulus", "[wuint]") {
@@ -778,26 +1105,6 @@ TEST_CASE("wuint uint32 modulus", "[wuint]") {
 	REQUIRE(wuint64("10000000000000000") % 10000 == 0);
 	REQUIRE(wuint96("1000000000000000000000000") % 10000 == 0);
 
-	REQUIRE(wuint32::max() % 1 == wuint32("0"));
-	REQUIRE(wuint64::max() % 1 == wuint64("0"));
-	REQUIRE(wuint96::max() % 1 == wuint96("0"));
-
-	REQUIRE(wuint32::max() % 0xFFFFFFFF == wuint32("0"));
-	REQUIRE(wuint64::max() % 0xFFFFFFFF == wuint64("0"));
-	REQUIRE(wuint96::max() % 0xFFFFFFFF == wuint96("0"));
-
-	REQUIRE((wuint32::max() - 1) % 0xFFFFFFFF == wuint32("0xFFFFFFFE"));
-	REQUIRE((wuint64::max() - 1) % 0xFFFFFFFF == wuint64("0xFFFFFFFE"));
-	REQUIRE((wuint96::max() - 1) % 0xFFFFFFFF == wuint96("0xFFFFFFFE"));
-
-	REQUIRE(wuint32::max() % 0x7FFFFFFF == wuint32("1"));
-	REQUIRE(wuint64::max() % 0x7FFFFFFF == wuint64("3"));
-	REQUIRE(wuint96::max() % 0x7FFFFFFF == wuint96("7"));
-
-	REQUIRE(wuint32::max() % 0x80000000 == wuint32("0x7FFFFFFF"));
-	REQUIRE(wuint64::max() % 0x80000000 == wuint64("0x7FFFFFFF"));
-	REQUIRE(wuint96::max() % 0x80000000 == wuint96("0x7FFFFFFF"));
-
 	REQUIRE(9999 % wuint32("10000") == wuint32("9999"));
 	REQUIRE(10000 % wuint32("10000") == wuint32("0"));
 	REQUIRE(10001 % wuint32("10000") == wuint32("1"));
@@ -808,17 +1115,196 @@ TEST_CASE("wuint uint32 modulus", "[wuint]") {
 	REQUIRE(10000 % wuint64("10000000000000000") == wuint64("10000"));
 	REQUIRE(10000 % wuint96("1000000000000000000000000") == wuint96("10000"));
 
-	REQUIRE(0xFFFFFFFF % wuint32("1") == wuint32("0"));
-	REQUIRE(0xFFFFFFFF % wuint64("1") == wuint64("0"));
-	REQUIRE(0xFFFFFFFF % wuint96("1") == wuint96("0"));
+	constexpr auto wuint32_7F = wuint32::max() / wuint32("2");
+	constexpr auto wuint64_7F = wuint64::max() / wuint64("2");
+	constexpr auto wuint96_7F = wuint96::max() / wuint96("2");
+	constexpr auto wuint32_80 = wuint32_7F + wuint32("1");
+	constexpr auto wuint64_80 = wuint64_7F + wuint64("1");
+	constexpr auto wuint96_80 = wuint96_7F + wuint96("1");
+	constexpr auto wuint32_81 = wuint32_80 + wuint32("1");
+	constexpr auto wuint64_81 = wuint64_80 + wuint64("1");
+	constexpr auto wuint96_81 = wuint96_80 + wuint96("1");
+	constexpr auto wuint32_FF = wuint32::max();
+	constexpr auto wuint64_FF = wuint64::max();
+	constexpr auto wuint96_FF = wuint96::max();
 
-	REQUIRE(0xFFFFFFFF % wuint32("0x7FFFFFFF") == wuint32("1"));
-	REQUIRE(0xFFFFFFFF % wuint64("0x7FFFFFFF") == wuint64("1"));
-	REQUIRE(0xFFFFFFFF % wuint96("0x7FFFFFFF") == wuint96("1"));
+	std::uint32_t uint32_80 = std::numeric_limits<std::int32_t>::min();
+	std::uint32_t uint32_81 = -std::numeric_limits<std::int32_t>::max();
+	std::uint32_t uint32_FF = -1;
+	std::uint32_t uint32_01 = 1;
+	std::uint32_t uint32_7F = std::numeric_limits<std::int32_t>::max();
 
-	REQUIRE(0xFFFFFFFF % wuint32("0x80000000") == wuint32("0x7FFFFFFF"));
-	REQUIRE(0xFFFFFFFF % wuint64("0x80000000") == wuint64("0x7FFFFFFF"));
-	REQUIRE(0xFFFFFFFF % wuint96("0x80000000") == wuint96("0x7FFFFFFF"));
+	// 01 % 01
+	REQUIRE(wuint32("1") % uint32_01 == wuint32("0"));
+	REQUIRE(wuint64("1") % uint32_01 == wuint64("0"));
+	REQUIRE(wuint96("1") % uint32_01 == wuint96("0"));
+
+	// 01 % 7F
+	REQUIRE(wuint32("1") % uint32_7F == wuint32("1"));
+	REQUIRE(wuint64("1") % uint32_7F == wuint64("1"));
+	REQUIRE(wuint96("1") % uint32_7F == wuint96("1"));
+
+	// 01 % 80
+	REQUIRE(wuint32("1") % uint32_80 == wuint32("1"));
+	REQUIRE(wuint64("1") % uint32_80 == wuint64("1"));
+	REQUIRE(wuint96("1") % uint32_80 == wuint96("1"));
+
+	// 01 % 81
+	REQUIRE(wuint32("1") % uint32_81 == wuint32("1"));
+	REQUIRE(wuint64("1") % uint32_81 == wuint64("1"));
+	REQUIRE(wuint96("1") % uint32_81 == wuint96("1"));
+
+	// 01 % FF
+	REQUIRE(wuint32("1") % uint32_FF == wuint32("1"));
+	REQUIRE(wuint64("1") % uint32_FF == wuint64("1"));
+	REQUIRE(wuint96("1") % uint32_FF == wuint96("1"));
+
+	// 7F % 01
+	REQUIRE(wuint32_7F % uint32_01 == wuint32("0"));
+	REQUIRE(wuint64_7F % uint32_01 == wuint64("0"));
+	REQUIRE(wuint96_7F % uint32_01 == wuint96("0"));
+
+	// 7F % 7F
+	REQUIRE(wuint32_7F % uint32_7F == wuint32("0"));
+	REQUIRE(wuint64_7F % uint32_7F == wuint64("1"));
+	REQUIRE(wuint96_7F % uint32_7F == wuint96("3"));
+
+	// 7F % 80
+	REQUIRE(wuint32_7F % uint32_80 == wuint32_7F);
+	REQUIRE(wuint64_7F % uint32_80 == wuint64("0x7FFFFFFF"));
+	REQUIRE(wuint96_7F % uint32_80 == wuint96("0x7FFFFFFF"));
+
+	// 7F % 81
+	REQUIRE(wuint32_7F % uint32_81 == wuint32_7F);
+	REQUIRE(wuint64_7F % uint32_81 == wuint64("1"));
+	REQUIRE(wuint96_7F % uint32_81 == wuint96("0x7FFFFFFC"));
+
+	// 7F % FF
+	REQUIRE(wuint32_7F % uint32_FF == wuint32_7F);
+	REQUIRE(wuint64_7F % uint32_FF == wuint64("0x7FFFFFFF"));
+	REQUIRE(wuint96_7F % uint32_FF == wuint96("0x7FFFFFFF"));
+
+	// 80 % 01
+	REQUIRE(wuint32_80 % uint32_01 == wuint32("0"));
+	REQUIRE(wuint64_80 % uint32_01 == wuint64("0"));
+	REQUIRE(wuint96_80 % uint32_01 == wuint96("0"));
+
+	// 80 % 7F
+	REQUIRE(wuint32_80 % uint32_7F == wuint32("1"));
+	REQUIRE(wuint64_80 % uint32_7F == wuint64("2"));
+	REQUIRE(wuint96_80 % uint32_7F == wuint96("4"));
+
+	// 80 % 80
+	REQUIRE(wuint32_80 % uint32_80 == wuint32("0"));
+	REQUIRE(wuint64_80 % uint32_80 == wuint64("0"));
+	REQUIRE(wuint96_80 % uint32_80 == wuint96("0"));
+
+	// 80 % 81
+	REQUIRE(wuint32_80 % uint32_81 == wuint32_80);
+	REQUIRE(wuint64_80 % uint32_81 == wuint64("2"));
+	REQUIRE(wuint96_80 % uint32_81 == wuint96("0x7FFFFFFD"));
+
+	// 80 % FF
+	REQUIRE(wuint32_80 % uint32_FF == wuint32_80);
+	REQUIRE(wuint64_80 % uint32_FF == wuint64("0x80000000"));
+	REQUIRE(wuint96_80 % uint32_FF == wuint96("0x80000000"));
+
+	// 81 % 01
+	REQUIRE(wuint32_81 % uint32_01 == wuint32("0"));
+	REQUIRE(wuint64_81 % uint32_01 == wuint64("0"));
+	REQUIRE(wuint96_81 % uint32_01 == wuint96("0"));
+
+	// 81 % 7F
+	REQUIRE(wuint32_81 % uint32_7F == wuint32("2"));
+	REQUIRE(wuint64_81 % uint32_7F == wuint64("3"));
+	REQUIRE(wuint96_81 % uint32_7F == wuint96("5"));
+
+	// 81 % 80
+	REQUIRE(wuint32_81 % uint32_80 == wuint32("1"));
+	REQUIRE(wuint64_81 % uint32_80 == wuint64("1"));
+	REQUIRE(wuint96_81 % uint32_80 == wuint96("1"));
+
+	// 81 % 81
+	REQUIRE(wuint32_81 % uint32_81 == wuint32("0"));
+	REQUIRE(wuint64_81 % uint32_81 == wuint64("3"));
+	REQUIRE(wuint96_81 % uint32_81 == wuint96("0x7FFFFFFE"));
+
+	// 81 % FF
+	REQUIRE(wuint32_81 % uint32_FF == wuint32_81);
+	REQUIRE(wuint64_81 % uint32_FF == wuint64("0x80000001"));
+	REQUIRE(wuint96_81 % uint32_FF == wuint96("0x80000001"));
+
+	// FF % 01
+	REQUIRE(wuint32_FF % uint32_01 == wuint32("0"));
+	REQUIRE(wuint64_FF % uint32_01 == wuint64("0"));
+	REQUIRE(wuint96_FF % uint32_01 == wuint96("0"));
+
+	// FF % 7F
+	REQUIRE(wuint32_FF % uint32_7F == wuint32("1"));
+	REQUIRE(wuint64_FF % uint32_7F == wuint64("3"));
+	REQUIRE(wuint96_FF % uint32_7F == wuint96("7"));
+
+	// FF % 80
+	REQUIRE(wuint32_FF % uint32_80 == wuint32_7F);
+	REQUIRE(wuint64_FF % uint32_80 == wuint64("0x7FFFFFFF"));
+	REQUIRE(wuint96_FF % uint32_80 == wuint96("0x7FFFFFFF"));
+
+	// FF % 81
+	REQUIRE(wuint32_FF % uint32_81 == wuint32("0x7FFFFFFE"));
+	REQUIRE(wuint64_FF % uint32_81 == wuint64("3"));
+	REQUIRE(wuint96_FF % uint32_81 == wuint96("0x7FFFFFF8"));
+
+	// FF % FF
+	REQUIRE(wuint32_FF % uint32_FF == wuint32("0"));
+	REQUIRE(wuint64_FF % uint32_FF == wuint64("0"));
+	REQUIRE(wuint96_FF % uint32_FF == wuint96("0"));
+
+	// 01 % 01
+	REQUIRE(uint32_01 % wuint32("1") == wuint32("0"));
+	REQUIRE(uint32_01 % wuint64("1") == wuint64("0"));
+	REQUIRE(uint32_01 % wuint96("1") == wuint96("0"));
+
+	// 7F % 01
+	REQUIRE(uint32_7F % wuint32("1") == wuint32("0"));
+
+	// 7F % 7F
+	REQUIRE(uint32_7F % wuint32_7F == wuint32("0"));
+
+	// 80 % 01
+	REQUIRE(uint32_80 % wuint32("1") == wuint32("0"));
+
+	// 80 % 7F
+	REQUIRE(uint32_80 % wuint32_7F == wuint32("1"));
+
+	// 80 % 80
+	REQUIRE(uint32_80 % wuint32_80 == wuint32("0"));
+
+	// 81 % 01
+	REQUIRE(uint32_81 % wuint32("1") == wuint32("0"));
+
+	// 81 % 7F
+	REQUIRE(uint32_81 % wuint32_7F == wuint32("2"));
+
+	// 81 % 80
+	REQUIRE(uint32_81 % wuint32_80 == wuint32("1"));
+
+	// 81 % 81
+	REQUIRE(uint32_81 % wuint32_81 == wuint32("0"));
+
+	// FF % 01
+	REQUIRE(uint32_FF % wuint32("1") == wuint32("0"));
+
+	// FF % 7F
+	REQUIRE(uint32_FF % wuint32_7F == wuint32("1"));
+
+	// FF % 80
+	REQUIRE(uint32_FF % wuint32_80 == wuint32_7F);
+
+	// FF % 81
+	REQUIRE(uint32_FF % wuint32_81 == wuint32("0x7FFFFFFE"));
+
+	// FF % FF
+	REQUIRE(uint32_FF % wuint32_FF == wuint32("0"));
 }
 
 TEST_CASE("wuint uint32 bitwise and", "[wuint]") {
