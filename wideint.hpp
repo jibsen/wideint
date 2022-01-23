@@ -744,17 +744,17 @@ constexpr wuint<width> iabs(const wuint<width> &obj)
 template<std::size_t width>
 constexpr wuint<width> idiv(const wuint<width> &lhs, const wuint<width> &rhs)
 {
-	wuint<width> res = iabs(lhs) / iabs(rhs);
+	wuint<width> quot = iabs(lhs) / iabs(rhs);
 
-	return lhs.is_inegative() != rhs.is_inegative() ? -res : res;
+	return lhs.is_inegative() != rhs.is_inegative() ? -quot : quot;
 }
 
 template<std::size_t width>
 constexpr wuint<width> imod(const wuint<width> &lhs, const wuint<width> &rhs)
 {
-	wuint<width> res = iabs(lhs) % iabs(rhs);
+	wuint<width> rem = iabs(lhs) % iabs(rhs);
 
-	return lhs.is_inegative() ? -res : res;
+	return lhs.is_inegative() ? -rem : rem;
 }
 
 template<std::size_t width>
