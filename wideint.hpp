@@ -42,7 +42,10 @@ struct wuint {
 		return res;
 	}
 
+	constexpr wuint() = default;
+
 	constexpr explicit wuint(std::uint32_t c) : cells{c} {}
+
 	constexpr explicit wuint(std::string_view sv);
 
 	constexpr wuint<width> &operator=(std::uint32_t c) {
@@ -190,7 +193,7 @@ struct wuint {
 		return true;
 	}
 
-	std::array<std::uint32_t, width> cells;
+	std::array<std::uint32_t, width> cells = {};
 };
 
 template<std::size_t width>
