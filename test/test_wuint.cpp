@@ -28,6 +28,7 @@
 #include "catch.hpp"
 
 using wideint::wuint;
+using wideint::wint;
 
 using wuint32 = wuint<1>;
 using wuint64 = wuint<2>;
@@ -47,59 +48,46 @@ constexpr wuint256 fac(std::uint32_t n)
 }
 
 template<std::size_t width>
-constexpr wuint<width> gcdext(wuint<width> &a, wuint<width> &b, const wuint<width> &x, const wuint<width> &y)
+constexpr wuint<width> modinv(const wuint<width> &a, const wuint<width> &n)
 {
-	wuint<width> old_r = x;
-	wuint<width> r = y;
-	wuint<width> old_s(1);
-	wuint<width> s(0);
-	wuint<width> old_t(0);
-	wuint<width> t(1);
+	wint<width> new_r(a);
+	wint<width> r(n);
+	wint<width> new_t(1);
+	wint<width> t(0);
 
-	while (r != 0) {
-		wuint<width> quotient = idiv(old_r, r);
+	while (new_r != 0) {
+		wint<width> quotient = r / new_r;
 
-		old_r = std::exchange(r, old_r - quotient * r);
-		old_s = std::exchange(s, old_s - quotient * s);
-		old_t = std::exchange(t, old_t - quotient * t);
+		t = std::exchange(new_t, t - quotient * new_t);
+		r = std::exchange(new_r, r - quotient * new_r);
 	}
 
-	a = old_s;
-	b = old_t;
-
-	return old_r;
-}
-
-template<std::size_t width>
-constexpr wuint<width> modinv(const wuint<width> &x, const wuint<width> &n)
-{
-	wuint<width> a(0);
-	wuint<width> b(0);
-
-	wuint<width> g = gcdext(a, b, n, x);
-
-	if (g != 1) {
+	if (r > 1) {
 		return wuint<width>(0);
 	}
 
-	while (b.is_inegative()) {
-		b += n;
+	if (t.is_negative()) {
+		t += wint<width>(n);
 	}
 
-	return b;
+	return wuint<width>(t);
 }
 
 template<std::size_t width>
 constexpr wuint<width> modexp(const wuint<width> &a, const wuint<width> &x, const wuint<width> &n)
 {
-	const wuint<width> amod = a % n;
+	if (x == 1) {
+		return wuint<width>(0);
+	}
+
+	const wuint<width> base(a % n);
 	wuint<width> res(1);
 
 	for (std::size_t bit_i = x.log2(); bit_i--; ) {
 		res = (res * res) % n;
 
 		if (x.getbit(static_cast<unsigned int>(bit_i))) {
-			res = (res * amod) % n;
+			res = (res * base) % n;
 		}
 	}
 
@@ -221,6 +209,17 @@ TEST_CASE("wuint uint32_t equality", "[wuint]") {
 	REQUIRE(wuint96("-286335522").cells[0] == -286335522);
 	REQUIRE(wuint96("-286335522").cells[1] == 0xFFFFFFFF);
 	REQUIRE(wuint96("-286335522").cells[2] == 0xFFFFFFFF);
+}
+
+TEST_CASE("wuint wuint less than", "[wuint]") {
+	REQUIRE(wuint64::min() < wuint64("1"));
+	REQUIRE(wuint64("1") < wuint64::max());
+}
+
+TEST_CASE("wuint uint32_t less than", "[wuint]") {
+	REQUIRE(wuint64::min() < 1);
+	REQUIRE(wuint64("1") < std::numeric_limits<std::uint32_t>::max());
+	REQUIRE(std::numeric_limits<std::uint32_t>::max() < wuint64("0x100000000"));
 }
 
 TEST_CASE("assign from uint32_t", "[wuint]") {
@@ -1399,22 +1398,22 @@ TEST_CASE("wuint is_zero", "[wuint]") {
 	REQUIRE(wuint96("0").is_zero());
 }
 
-TEST_CASE("wuint is_inegative", "[wuint]") {
-	REQUIRE(!wuint32("0").is_inegative());
-	REQUIRE(!wuint64("0").is_inegative());
-	REQUIRE(!wuint96("0").is_inegative());
+TEST_CASE("wuint is_negative", "[wuint]") {
+	REQUIRE(!wuint32("0").is_negative());
+	REQUIRE(!wuint64("0").is_negative());
+	REQUIRE(!wuint96("0").is_negative());
 
-	REQUIRE(wuint32("-1").is_inegative());
-	REQUIRE(wuint64("-1").is_inegative());
-	REQUIRE(wuint96("-1").is_inegative());
+	REQUIRE(!wuint32("-1").is_negative());
+	REQUIRE(!wuint64("-1").is_negative());
+	REQUIRE(!wuint96("-1").is_negative());
 
-	REQUIRE(!wuint32("0x7FFFFFFF").is_inegative());
-	REQUIRE(!wuint64("0x7FFFFFFFFFFFFFFF").is_inegative());
-	REQUIRE(!wuint96("0x7FFFFFFFFFFFFFFFFFFFFFFF").is_inegative());
+	REQUIRE(!wuint32("0x7FFFFFFF").is_negative());
+	REQUIRE(!wuint64("0x7FFFFFFFFFFFFFFF").is_negative());
+	REQUIRE(!wuint96("0x7FFFFFFFFFFFFFFFFFFFFFFF").is_negative());
 
-	REQUIRE(wuint32("0x80000000").is_inegative());
-	REQUIRE(wuint64("0x8000000000000000").is_inegative());
-	REQUIRE(wuint96("0x800000000000000000000000").is_inegative());
+	REQUIRE(!wuint32("0x80000000").is_negative());
+	REQUIRE(!wuint64("0x8000000000000000").is_negative());
+	REQUIRE(!wuint96("0x800000000000000000000000").is_negative());
 }
 
 TEST_CASE("wuint log2", "[wuint]") {
@@ -1450,101 +1449,30 @@ TEST_CASE("wuint setbit", "[wuint]") {
 	REQUIRE(wuint96("0").setbit(95) == wuint96("0x800000000000000000000000"));
 }
 
-TEST_CASE("wuint iabs", "[wuint]") {
-	REQUIRE(iabs(wuint96("0")) == wuint96("0"));
-	REQUIRE(iabs(wuint96("1")) == wuint96("1"));
-	REQUIRE(iabs(wuint96("-1")) == wuint96("1"));
-	REQUIRE(iabs(wuint96("0x7FFFFFFFFFFFFFFFFFFFFFFF")) == wuint96("0x7FFFFFFFFFFFFFFFFFFFFFFF"));
-	REQUIRE(iabs(wuint96("0x800000000000000000000000")) == wuint96("0x800000000000000000000000"));
-	REQUIRE(iabs(wuint96("0x800000000000000000000001")) == wuint96("0x7FFFFFFFFFFFFFFFFFFFFFFF"));
+TEST_CASE("wuint abs", "[wuint]") {
+	REQUIRE(abs(wuint96("0")) == wuint96("0"));
+	REQUIRE(abs(wuint96("1")) == wuint96("1"));
+	REQUIRE(abs(wuint96("-1")) == wuint96("-1"));
+	REQUIRE(abs(wuint96("0x7FFFFFFFFFFFFFFFFFFFFFFF")) == wuint96("0x7FFFFFFFFFFFFFFFFFFFFFFF"));
+	REQUIRE(abs(wuint96("0x800000000000000000000000")) == wuint96("0x800000000000000000000000"));
+	REQUIRE(abs(wuint96("0x800000000000000000000001")) == wuint96("0x800000000000000000000001"));
 }
 
-TEST_CASE("wuint wuint idiv", "[wuint]") {
-	REQUIRE(idiv(wuint32("456"), wuint32("123")) == 456 / 123);
-	REQUIRE(idiv(wuint32("456"), -wuint32("123")) == 456 / -123);
-	REQUIRE(idiv(-wuint32("456"), wuint32("123")) == -456 / 123);
-	REQUIRE(idiv(-wuint32("456"), -wuint32("123")) == -456 / -123);
+TEST_CASE("wuint to_string", "[wuint]") {
+	auto str = GENERATE(as<std::string>{},
+		"0",
+		"1",
+		"286335522",
+		"3689367580026693222",
+		"36973223102941133555797576908",
+		"39614081257132168796771975167",
+		"39614081257132168796771975168",
+		"79228162514264337593543950335"
+	);
 
-	REQUIRE(idiv(wuint32("0x7FFFFFFF"), wuint32("1")) == wuint32("0x7FFFFFFF"));
-	REQUIRE(idiv(wuint64("0x7FFFFFFFFFFFFFFF"), wuint64("1")) == wuint64("0x7FFFFFFFFFFFFFFF"));
-	REQUIRE(idiv(wuint96("0x7FFFFFFFFFFFFFFFFFFFFFFF"), wuint96("1")) == wuint96("0x7FFFFFFFFFFFFFFFFFFFFFFF"));
+	const auto value = wuint96(str);
 
-	REQUIRE(idiv(wuint32("0x80000000"), wuint32("1")) == wuint32("0x80000000"));
-	REQUIRE(idiv(wuint64("0x8000000000000000"), wuint64("1")) == wuint64("0x8000000000000000"));
-	REQUIRE(idiv(wuint96("0x800000000000000000000000"), wuint96("1")) == wuint96("0x800000000000000000000000"));
-
-	REQUIRE(idiv(wuint32("0x7FFFFFFF"), wuint32("-1")) == wuint32("0x80000001"));
-	REQUIRE(idiv(wuint64("0x7FFFFFFFFFFFFFFF"), wuint64("-1")) == wuint64("0x8000000000000001"));
-	REQUIRE(idiv(wuint96("0x7FFFFFFFFFFFFFFFFFFFFFFF"), wuint96("-1")) == wuint96("0x800000000000000000000001"));
-
-	REQUIRE(idiv(wuint32("0x80000001"), wuint32("-1")) == wuint32("0x7FFFFFFF"));
-	REQUIRE(idiv(wuint64("0x8000000000000001"), wuint64("-1")) == wuint64("0x7FFFFFFFFFFFFFFF"));
-	REQUIRE(idiv(wuint96("0x800000000000000000000001"), wuint96("-1")) == wuint96("0x7FFFFFFFFFFFFFFFFFFFFFFF"));
-
-	REQUIRE(idiv(wuint32("-1"), wuint32("1")) == wuint32("-1"));
-	REQUIRE(idiv(wuint64("-1"), wuint64("1")) == wuint64("-1"));
-	REQUIRE(idiv(wuint96("-1"), wuint96("1")) == wuint96("-1"));
-
-	REQUIRE(idiv(wuint32("1"), wuint32("-1")) == wuint32("-1"));
-	REQUIRE(idiv(wuint64("1"), wuint64("-1")) == wuint64("-1"));
-	REQUIRE(idiv(wuint96("1"), wuint96("-1")) == wuint96("-1"));
-
-	REQUIRE(idiv(wuint32("-1"), wuint32("-1")) == wuint32("1"));
-	REQUIRE(idiv(wuint64("-1"), wuint64("-1")) == wuint64("1"));
-	REQUIRE(idiv(wuint96("-1"), wuint96("-1")) == wuint96("1"));
-}
-
-TEST_CASE("wuint wuint imod", "[wuint]") {
-	REQUIRE(imod(wuint32("456"), wuint32("123")) == 456 % 123);
-	REQUIRE(imod(wuint32("456"), -wuint32("123")) == 456 % -123);
-	REQUIRE(imod(-wuint32("456"), wuint32("123")) == -456 % 123);
-	REQUIRE(imod(-wuint32("456"), -wuint32("123")) == -456 % -123);
-
-	REQUIRE(imod(wuint32("-1"), wuint32("2")) == wuint32("-1"));
-	REQUIRE(imod(wuint64("-1"), wuint64("2")) == wuint64("-1"));
-	REQUIRE(imod(wuint96("-1"), wuint96("2")) == wuint96("-1"));
-
-	REQUIRE(imod(wuint32("1"), wuint32("-2")) == wuint32("1"));
-	REQUIRE(imod(wuint64("1"), wuint64("-2")) == wuint64("1"));
-	REQUIRE(imod(wuint96("1"), wuint96("-2")) == wuint96("1"));
-
-	REQUIRE(imod(wuint32("-1"), wuint32("-2")) == wuint32("-1"));
-	REQUIRE(imod(wuint64("-1"), wuint64("-2")) == wuint64("-1"));
-	REQUIRE(imod(wuint96("-1"), wuint96("-2")) == wuint96("-1"));
-}
-
-TEST_CASE("wuint shiftar", "[wuint]") {
-	REQUIRE(shiftar(wuint32("0x01234567"), 4) == wuint32("0x00123456"));
-	REQUIRE(shiftar(wuint64("0x0123456712345678"), 4) == wuint64("0x0012345671234567"));
-	REQUIRE(shiftar(wuint96("0x012345671234567823456789"), 4) == wuint96("0x001234567123456782345678"));
-
-	REQUIRE(shiftar(wuint64("0x0123456712345678"), 32) == wuint64("0x01234567"));
-	REQUIRE(shiftar(wuint96("0x012345671234567823456789"), 32) == wuint96("0x0123456712345678"));
-
-	REQUIRE(shiftar(wuint64("0x0123456712345678"), 36) == wuint64("0x00123456"));
-	REQUIRE(shiftar(wuint96("0x012345671234567823456789"), 36) == wuint96("0x0012345671234567"));
-
-	REQUIRE(shiftar(wuint96("0x012345671234567823456789"), 64) == wuint96("0x01234567"));
-
-	REQUIRE(shiftar(wuint96("0x012345671234567823456789"), 68) == wuint96("0x00123456"));
-
-	REQUIRE(shiftar(wuint32("0x81234567"), 4) == wuint32("0xF8123456"));
-	REQUIRE(shiftar(wuint64("0x8123456712345678"), 4) == wuint64("0xF812345671234567"));
-	REQUIRE(shiftar(wuint96("0x812345671234567823456789"), 4) == wuint96("0xF81234567123456782345678"));
-
-	REQUIRE(shiftar(wuint64("0x8123456712345678"), 32) == wuint64("0xFFFFFFFF81234567"));
-	REQUIRE(shiftar(wuint96("0x812345671234567823456789"), 32) == wuint96("0xFFFFFFFF8123456712345678"));
-
-	REQUIRE(shiftar(wuint64("0x8123456712345678"), 36) == wuint64("0xFFFFFFFFF8123456"));
-	REQUIRE(shiftar(wuint96("0x812345671234567823456789"), 36) == wuint96("0xFFFFFFFFF812345671234567"));
-
-	REQUIRE(shiftar(wuint96("0x812345671234567823456789"), 64) == wuint96("0xFFFFFFFFFFFFFFFF81234567"));
-
-	REQUIRE(shiftar(wuint96("0x812345671234567823456789"), 68) == wuint96("0xFFFFFFFFFFFFFFFFF8123456"));
-
-	REQUIRE(shiftar(wuint256("0x8123456712345678234567893456789A456789AB56789ABC6789ABCD789ABCDE"), 224) == wuint256("0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF81234567"));
-
-	REQUIRE(shiftar(wuint256("0x8123456712345678234567893456789A456789AB56789ABC6789ABCD789ABCDE"), 228) == wuint256("0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF8123456"));
+	REQUIRE(to_string(value) == str);
 }
 
 TEST_CASE("wuint stream output", "[wuint]") {
@@ -1614,7 +1542,27 @@ TEST_CASE("wuint factorial", "[wuint]") {
 	REQUIRE(fac(34) / fac(30) == 34 * 33 * 32 * 31);
 }
 
-TEST_CASE("wuint decrypt", "[wuint]") {
+TEST_CASE("wuint modinv", "[wuint]") {
+	auto str = GENERATE(as<std::string>{},
+		"1",
+		"2",
+		"286335522",
+		"3689367580026693222",
+		"9223372036854775336"
+	);
+
+	constexpr wuint128 n("9223372036854775337");
+
+	wuint128 value(str);
+
+	wuint128 value_inv = modinv(value, n);
+
+	REQUIRE(value_inv > 0);
+	REQUIRE(value_inv < n);
+	REQUIRE((value * value_inv) % n == 1);
+}
+
+TEST_CASE("wuint crypt", "[wuint]") {
 	constexpr wuint256 p("9223372036854775337");
 	constexpr wuint256 q("4611686018427387847");
 

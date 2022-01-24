@@ -31,6 +31,9 @@
 namespace wideint {
 
 template<std::size_t width>
+struct wint;
+
+template<std::size_t width>
 struct wuint {
 	static constexpr wuint<width> min() {
 		return wuint<width>(0);
@@ -47,6 +50,8 @@ struct wuint {
 	constexpr explicit wuint(std::uint32_t c) : cells{c} {}
 
 	constexpr explicit wuint(std::string_view sv);
+
+	constexpr explicit wuint(const wint<width> &other) : cells{other.cells} {}
 
 	constexpr wuint<width> &operator=(std::uint32_t c) {
 		cells.fill(0);
@@ -90,9 +95,7 @@ struct wuint {
 
 	constexpr explicit operator bool() const { return !is_zero(); }
 
-	constexpr bool is_inegative() const {
-		return cells.back() & (std::uint32_t(1) << 31);
-	}
+	constexpr bool is_negative() const { return false; }
 
 	constexpr std::size_t log2() const {
 		for (std::size_t i = width; i--; ) {
@@ -739,56 +742,9 @@ constexpr wuint<width> operator^(std::uint32_t c, const wuint<width> &rhs)
 }
 
 template<std::size_t width>
-constexpr wuint<width> iabs(const wuint<width> &obj)
+constexpr wuint<width> abs(const wuint<width> &obj)
 {
-	return obj.is_inegative() ? -obj : obj;
-}
-
-template<std::size_t width>
-constexpr wuint<width> idiv(const wuint<width> &lhs, const wuint<width> &rhs)
-{
-	wuint<width> quot = iabs(lhs) / iabs(rhs);
-
-	return lhs.is_inegative() != rhs.is_inegative() ? -quot : quot;
-}
-
-template<std::size_t width>
-constexpr wuint<width> imod(const wuint<width> &lhs, const wuint<width> &rhs)
-{
-	wuint<width> rem = iabs(lhs) % iabs(rhs);
-
-	return lhs.is_inegative() ? -rem : rem;
-}
-
-template<std::size_t width>
-constexpr wuint<width> shiftar(const wuint<width> &lhs, unsigned int shift)
-{
-	wuint<width> res(lhs);
-
-	std::size_t pos = shift / 32;
-	std::size_t offs = shift % 32;
-
-	std::uint32_t fill = res.is_inegative() ? -1 : 0;
-
-	std::uint64_t w = static_cast<std::uint64_t>(res.cells[pos]) << 32;
-	res.cells[pos] = fill;
-
-	for (std::size_t i = 0; i != width - pos - 1; ++i) {
-		w = (w >> 32) + (static_cast<std::uint64_t>(res.cells[i + pos + 1]) << 32);
-		res.cells[i + pos + 1] = fill;
-
-		res.cells[i] = static_cast<std::uint32_t>(w >> offs);
-	}
-
-	res.cells[width - pos - 1] = static_cast<std::uint32_t>(
-		((w >> 32) | (static_cast<std::uint64_t>(fill) << 32)) >> offs
-	);
-
-	for (std::size_t i = width - pos; i < pos; ++i) {
-		res.cells[i] = fill;
-	}
-
-	return res;
+	return obj;
 }
 
 template<std::size_t width>
@@ -910,12 +866,826 @@ std::istream &operator>>(std::istream &is, wuint<width> &obj)
 	return is;
 }
 
+template<std::size_t width>
+struct wint {
+	static constexpr wint<width> min() {
+		wint<width> res(0);
+		res.cells.back() = 0x80000000;
+		return res;
+	}
+
+	static constexpr wint<width> max() {
+		wint<width> res(-1);
+		res.cells.back() = 0x7FFFFFFF;
+		return res;
+	}
+
+	constexpr wint() = default;
+
+	constexpr explicit wint(std::int32_t c) {
+		if (c < 0) {
+			cells.fill(-1);
+		}
+		cells[0] = static_cast<std::uint32_t>(c);
+	}
+
+	constexpr explicit wint(std::string_view sv);
+
+	constexpr explicit wint(const wuint<width> &other) : cells{other.cells} {}
+
+	constexpr wint<width> &operator=(std::int32_t c) {
+		cells.fill(c < 0 ? -1 : 0);
+		cells[0] = static_cast<std::uint32_t>(c);
+
+		return *this;
+	}
+
+	constexpr wint<width> &operator+=(const wint<width> &rhs);
+	constexpr wint<width> &operator-=(const wint<width> &rhs);
+	constexpr wint<width> &operator*=(const wint<width> &rhs);
+	constexpr wint<width> &operator/=(const wint<width> &rhs);
+	constexpr wint<width> &operator%=(const wint<width> &rhs);
+
+	constexpr wint<width> &operator&=(const wint<width> &rhs);
+	constexpr wint<width> &operator|=(const wint<width> &rhs);
+	constexpr wint<width> &operator^=(const wint<width> &rhs);
+
+	constexpr wint<width> &operator<<=(unsigned int shift);
+	constexpr wint<width> &operator>>=(unsigned int shift);
+
+	constexpr wint<width> &operator+=(std::int32_t c);
+	constexpr wint<width> &operator-=(std::int32_t c);
+	constexpr wint<width> &operator*=(std::int32_t c);
+	constexpr wint<width> &operator/=(std::int32_t c);
+	constexpr wint<width> &operator%=(std::int32_t c);
+
+	constexpr wint<width> &operator&=(std::uint32_t c);
+	constexpr wint<width> &operator|=(std::uint32_t c);
+	constexpr wint<width> &operator^=(std::uint32_t c);
+
+	constexpr bool is_zero() const {
+		for (std::size_t i = 0; i != width; ++i) {
+			if (cells[i]) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	constexpr explicit operator bool() const { return !is_zero(); }
+
+	constexpr bool is_negative() const {
+		return cells.back() & (std::uint32_t(1) << 31);
+	}
+
+	constexpr std::size_t log2() const {
+		for (std::size_t i = width; i--; ) {
+			if (cells[i]) {
+				return std::bit_width(cells[i]) + 32 * i;
+			}
+		}
+
+		return 0;
+	}
+
+	constexpr std::uint32_t getbit(unsigned int bit) const {
+		unsigned int pos = bit / 32;
+		unsigned int offs = bit % 32;
+
+		return (cells[pos] >> offs) & 1U;
+	}
+
+	constexpr wint<width> &setbit(unsigned int bit) {
+		unsigned int pos = bit / 32;
+		unsigned int offs = bit % 32;
+
+		cells[pos] |= std::uint32_t(1) << offs;
+
+		return *this;
+	}
+
+	constexpr wint<width> &operator++() {
+		std::uint32_t carry = 1;
+
+		for (std::size_t i = 0; carry && i != width; ++i) {
+			std::uint64_t w = static_cast<std::uint64_t>(cells[i]) + carry;
+			cells[i] = static_cast<std::uint32_t>(w);
+			carry = static_cast<std::uint32_t>(w >> 32);
+		}
+
+        	return *this;
+	}
+
+	constexpr wint<width> operator++(int) {
+		wint<width> old = *this;
+		operator++();
+		return old;
+	}
+
+	constexpr wint<width> &operator--() {
+		std::uint32_t borrow = 1;
+
+		for (std::size_t i = 0; borrow && i != width; ++i) {
+			std::uint64_t w = static_cast<std::uint64_t>(cells[i]) - borrow;
+			cells[i] = static_cast<std::uint32_t>(w);
+			borrow = static_cast<std::uint32_t>(w >> 32) ? 1 : 0;
+		}
+
+		return *this;
+	}
+
+	constexpr wint<width> operator--(int) {
+		wint<width> old = *this;
+		operator--();
+		return old;
+	}
+
+	constexpr std::strong_ordering operator<=>(const wint<width> &rhs) const {
+		bool negative = is_negative();
+
+		if (negative == rhs.is_negative()) {
+			for (std::size_t i = width; i--; ) {
+				if (cells[i] != rhs.cells[i]) {
+					return cells[i] <=> rhs.cells[i];
+				}
+			}
+
+			return std::strong_ordering::equal;
+		}
+
+		return negative ? std::strong_ordering::less : std::strong_ordering::greater;
+	}
+
+	constexpr std::strong_ordering operator<=>(std::int32_t c) const
+	{
+		bool negative = is_negative();
+
+		if (negative == (c < 0)) {
+			std::uint32_t fill = c < 0 ? -1 : 0;
+
+			for (std::size_t i = width - 1; i != 0; --i) {
+				if (cells[i] != fill) {
+					return cells[i] <=> fill;
+				}
+			}
+
+			return cells[0] <=> static_cast<std::uint32_t>(c);
+		}
+
+		return negative ? std::strong_ordering::less : std::strong_ordering::greater;
+	}
+
+	constexpr bool operator==(const wint<width> &) const = default;
+
+	constexpr bool operator==(std::int32_t c) const {
+		if (cells.front() != static_cast<std::uint32_t>(c)) {
+			return false;
+		}
+
+		std::uint32_t fill = c < 0 ? -1 : 0;
+
+		for (std::size_t i = 1; i != width; ++i) {
+			if (cells[i] != fill) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	std::array<std::uint32_t, width> cells = {};
+};
+
+template<std::size_t width>
+constexpr wint<width> operator~(const wint<width> &obj)
+{
+	wint<width> res(obj);
+
+	for (auto &cell : res.cells) {
+		cell = ~cell;
+	}
+
+	return res;
+}
+
+template<std::size_t width>
+constexpr wint<width> operator-(const wint<width> &obj)
+{
+	wint<width> res(obj);
+	std::uint32_t carry = 1;
+
+	for (std::size_t i = 0; i != width; ++i) {
+		std::uint64_t w = static_cast<std::uint64_t>(static_cast<std::uint32_t>(~res.cells[i])) + carry;
+		res.cells[i] = static_cast<std::uint32_t>(w);
+		carry = static_cast<std::uint32_t>(w >> 32);
+	}
+
+       	return res;
+}
+
+template<std::size_t width>
+constexpr wint<width> &wint<width>::operator+=(const wint<width> &rhs)
+{
+	std::uint32_t carry = 0;
+
+	for (std::size_t i = 0; i != width; ++i) {
+		std::uint64_t w = static_cast<std::uint64_t>(cells[i]) + rhs.cells[i] + carry;
+		cells[i] = static_cast<std::uint32_t>(w);
+		carry = static_cast<std::uint32_t>(w >> 32);
+	}
+
+	return *this;
+}
+
+template<std::size_t width>
+constexpr wint<width> operator+(const wint<width> &lhs, const wint<width> &rhs)
+{
+	wint<width> res(lhs);
+	res += rhs;
+	return res;
+}
+
+template<std::size_t width>
+constexpr wint<width> &wint<width>::operator-=(const wint<width> &rhs)
+{
+	std::uint32_t borrow = 0;
+
+	for (std::size_t i = 0; i != width; ++i) {
+		std::uint64_t w = static_cast<std::uint64_t>(cells[i]) - rhs.cells[i] - borrow;
+		cells[i] = static_cast<std::uint32_t>(w);
+		borrow = static_cast<std::uint32_t>(w >> 32) ? 1 : 0;
+	}
+
+	return *this;
+}
+
+template<std::size_t width>
+constexpr wint<width> operator-(const wint<width> &lhs, const wint<width> &rhs)
+{
+	wint<width> res(lhs);
+	res -= rhs;
+	return res;
+}
+
+template<std::size_t width>
+constexpr wint<width> &wint<width>::operator*=(const wint<width> &rhs)
+{
+	wint<width> res(0);
+
+	for (std::size_t i = 0; i != width; ++i) {
+		if (cells[i]) {
+			std::uint32_t carry = 0;
+
+			for (std::size_t j = 0; i + j != width; ++j) {
+				std::uint64_t w = static_cast<std::uint64_t>(cells[i]) * rhs.cells[j] + res.cells[i + j] + carry;
+				res.cells[i + j] = static_cast<std::uint32_t>(w);
+				carry = static_cast<std::uint32_t>(w >> 32);
+			}
+		}
+	}
+
+	*this = res;
+
+	return *this;
+}
+
+template<std::size_t width>
+constexpr wint<width> operator*(const wint<width> &lhs, const wint<width> &rhs)
+{
+	wint<width> res(0);
+
+	for (std::size_t i = 0; i != width; ++i) {
+		if (lhs.cells[i]) {
+			std::uint32_t carry = 0;
+
+			for (std::size_t j = 0; i + j != width; ++j) {
+				std::uint64_t w = static_cast<std::uint64_t>(lhs.cells[i]) * rhs.cells[j] + res.cells[i + j] + carry;
+				res.cells[i + j] = static_cast<std::uint32_t>(w);
+				carry = static_cast<std::uint32_t>(w >> 32);
+			}
+		}
+	}
+
+	return res;
+}
+
+template<std::size_t width>
+constexpr wint<width> &wint<width>::operator/=(const wint<width> &rhs)
+{
+	wint<width> quot(wuint<width>(abs(*this)) / wuint<width>(abs(rhs)));
+
+	*this = is_negative() != rhs.is_negative() ? -quot : quot;
+
+	return *this;
+}
+
+template<std::size_t width>
+constexpr wint<width> operator/(const wint<width> &lhs, const wint<width> &rhs)
+{
+	wint<width> res(lhs);
+	res /= rhs;
+	return res;
+}
+
+template<std::size_t width>
+constexpr wint<width> &wint<width>::operator%=(const wint<width> &rhs)
+{
+	wint<width> rem(wuint<width>(abs(*this)) % wuint<width>(abs(rhs)));
+
+	*this = is_negative() ? -rem : rem;
+
+	return *this;
+}
+
+template<std::size_t width>
+constexpr wint<width> operator%(const wint<width> &lhs, const wint<width> &rhs)
+{
+	wint<width> res(lhs);
+	res %= rhs;
+	return res;
+}
+
+template<std::size_t width>
+constexpr wint<width> &wint<width>::operator&=(const wint<width> &rhs)
+{
+	for (std::size_t i = 0; i != width; ++i) {
+		cells[i] &= rhs.cells[i];
+	}
+
+	return *this;
+}
+
+template<std::size_t width>
+constexpr wint<width> operator&(const wint<width> &lhs, const wint<width> &rhs)
+{
+	wint<width> res(lhs);
+	res &= rhs;
+	return res;
+}
+
+template<std::size_t width>
+constexpr wint<width> &wint<width>::operator|=(const wint<width> &rhs)
+{
+	for (std::size_t i = 0; i != width; ++i) {
+		cells[i] |= rhs.cells[i];
+	}
+
+	return *this;
+}
+
+template<std::size_t width>
+constexpr wint<width> operator|(const wint<width> &lhs, const wint<width> &rhs)
+{
+	wint<width> res(lhs);
+	res |= rhs;
+	return res;
+}
+
+template<std::size_t width>
+constexpr wint<width> &wint<width>::operator^=(const wint<width> &rhs)
+{
+	for (std::size_t i = 0; i != width; ++i) {
+		cells[i] ^= rhs.cells[i];
+	}
+
+	return *this;
+}
+
+template<std::size_t width>
+constexpr wint<width> operator^(const wint<width> &lhs, const wint<width> &rhs)
+{
+	wint<width> res(lhs);
+	res ^= rhs;
+	return res;
+}
+
+template<std::size_t width>
+constexpr wint<width> &wint<width>::operator<<=(unsigned int shift)
+{
+	std::size_t pos = shift / 32;
+	std::size_t offs = shift % 32;
+
+	for (std::size_t i = pos; i-- > width - pos; ) {
+		cells[i] = 0;
+	}
+
+	std::uint64_t w = cells[width - pos - 1];
+	cells[width - pos - 1] = 0;
+
+	for (std::size_t i = width - pos - 1; i--; ) {
+		w = (w << 32) + cells[i];
+		cells[i] = 0;
+
+		cells[i + pos + 1] = static_cast<std::uint32_t>(w >> (32 - offs));
+	}
+
+	cells[pos] = static_cast<std::uint32_t>(w << offs);
+
+	return *this;
+}
+
+template<std::size_t width>
+constexpr wint<width> operator<<(const wint<width> &lhs, unsigned int shift)
+{
+	wint<width> res(lhs);
+	res <<= shift;
+	return res;
+}
+
+template<std::size_t width>
+constexpr wint<width> &wint<width>::operator>>=(unsigned int shift)
+{
+	std::size_t pos = shift / 32;
+	std::size_t offs = shift % 32;
+
+	std::uint32_t fill = is_negative() ? -1 : 0;
+
+	std::uint64_t w = static_cast<std::uint64_t>(cells[pos]) << 32;
+	cells[pos] = fill;
+
+	for (std::size_t i = 0; i != width - pos - 1; ++i) {
+		w = (w >> 32) + (static_cast<std::uint64_t>(cells[i + pos + 1]) << 32);
+		cells[i + pos + 1] = fill;
+
+		cells[i] = static_cast<std::uint32_t>(w >> offs);
+	}
+
+	cells[width - pos - 1] = static_cast<std::uint32_t>(
+		((w >> 32) | (static_cast<std::uint64_t>(fill) << 32)) >> offs
+	);
+
+	for (std::size_t i = width - pos; i < pos; ++i) {
+		cells[i] = fill;
+	}
+
+	return *this;
+}
+
+template<std::size_t width>
+constexpr wint<width> operator>>(const wint<width> &lhs, unsigned int shift)
+{
+	wint<width> res(lhs);
+	res >>= shift;
+	return res;
+}
+
+template<std::size_t width>
+constexpr wint<width> &wint<width>::operator+=(std::int32_t c)
+{
+	if (c < 0) {
+		std::uint32_t borrow = -c;
+
+		for (std::size_t i = 0; i != width; ++i) {
+			std::uint64_t w = static_cast<std::uint64_t>(cells[i]) - borrow;
+			cells[i] = static_cast<std::uint32_t>(w);
+			borrow = static_cast<std::uint32_t>(w >> 32) ? 1 : 0;
+		}
+
+		return *this;
+	}
+
+	std::uint32_t carry = c;
+
+	for (std::size_t i = 0; i != width; ++i) {
+		std::uint64_t w = static_cast<std::uint64_t>(cells[i]) + carry;
+		cells[i] = static_cast<std::uint32_t>(w);
+		carry = static_cast<std::uint32_t>(w >> 32);
+	}
+
+	return *this;
+}
+
+template<std::size_t width>
+constexpr wint<width> operator+(const wint<width> &lhs, std::int32_t c)
+{
+	wint<width> res(lhs);
+	res += c;
+	return res;
+}
+
+template<std::size_t width>
+constexpr wint<width> operator+(std::int32_t c, const wint<width> &rhs)
+{
+	wint<width> res(rhs);
+	res += c;
+	return res;
+}
+
+template<std::size_t width>
+constexpr wint<width> &wint<width>::operator-=(std::int32_t c)
+{
+	if (c < 0) {
+		std::uint32_t carry = -c;
+
+		for (std::size_t i = 0; i != width; ++i) {
+			std::uint64_t w = static_cast<std::uint64_t>(cells[i]) + carry;
+			cells[i] = static_cast<std::uint32_t>(w);
+			carry = static_cast<std::uint32_t>(w >> 32);
+		}
+
+		return *this;
+	}
+
+	std::uint32_t borrow = c;
+
+	for (std::size_t i = 0; i != width; ++i) {
+		std::uint64_t w = static_cast<std::uint64_t>(cells[i]) - borrow;
+		cells[i] = static_cast<std::uint32_t>(w);
+		borrow = static_cast<std::uint32_t>(w >> 32) ? 1 : 0;
+	}
+
+	return *this;
+}
+
+template<std::size_t width>
+constexpr wint<width> operator-(const wint<width> &lhs, std::int32_t c)
+{
+	wint<width> res(lhs);
+	res -= c;
+	return res;
+}
+
+template<std::size_t width>
+constexpr wint<width> operator-(std::int32_t c, const wint<width> &rhs)
+{
+	wint<width> res(c);
+	res -= rhs;
+	return res;
+}
+
+template<std::size_t width>
+constexpr wint<width> &wint<width>::operator*=(std::int32_t c)
+{
+	std::uint32_t abs_c = c < 0 ? -c : c;
+
+	std::uint32_t carry = 0;
+
+	for (std::size_t i = 0; i != width; ++i) {
+		std::uint64_t w = static_cast<std::uint64_t>(cells[i]) * abs_c + carry;
+		cells[i] = static_cast<std::uint32_t>(w);
+		carry = static_cast<std::uint32_t>(w >> 32);
+	}
+
+	if (c < 0) {
+		*this = -*this;
+	}
+
+	return *this;
+}
+
+template<std::size_t width>
+constexpr wint<width> operator*(const wint<width> &lhs, std::int32_t c)
+{
+	wint<width> res(lhs);
+	res *= c;
+	return res;
+}
+
+template<std::size_t width>
+constexpr wint<width> operator*(std::int32_t c, const wint<width> &rhs)
+{
+	wint<width> res(rhs);
+	res *= c;
+	return res;
+}
+
+template<std::size_t width>
+constexpr wint<width> &wint<width>::operator/=(std::int32_t c)
+{
+	std::uint32_t abs_c = c < 0 ? -c : c;
+
+	wint<width> quot(wuint<width>(abs(*this)) / abs_c);
+
+	*this = is_negative() != (c < 0) ? -quot : quot;
+
+	return *this;
+}
+
+template<std::size_t width>
+constexpr wint<width> operator/(const wint<width> &lhs, std::int32_t c)
+{
+	wint<width> res(lhs);
+	res /= c;
+	return res;
+}
+
+template<std::size_t width>
+constexpr wint<width> operator/(std::int32_t c, const wint<width> &rhs)
+{
+	std::uint32_t abs_c = c < 0 ? -c : c;
+
+	wint<width> quot(abs_c / wuint<width>(abs(rhs)));
+
+	return (c < 0) != rhs.is_negative() ? -quot : quot;
+}
+
+template<std::size_t width>
+constexpr wint<width> &wint<width>::operator%=(std::int32_t c)
+{
+	std::uint32_t abs_c = c < 0 ? -c : c;
+
+	wint<width> rem(wuint<width>(abs(*this)) % abs_c);
+
+	*this = is_negative() ? -rem : rem;
+
+	return *this;
+}
+
+template<std::size_t width>
+constexpr std::int32_t operator%(const wint<width> &lhs, std::int32_t c)
+{
+	std::uint32_t abs_c = c < 0 ? -c : c;
+
+	std::int32_t rem = std::bit_cast<std::int32_t>(wuint<width>(abs(lhs)) % abs_c);
+
+	return lhs.is_negative() ? -rem : rem;
+}
+
+template<std::size_t width>
+constexpr wint<width> operator%(std::int32_t c, const wint<width> &rhs)
+{
+	std::uint32_t abs_c = c < 0 ? -c : c;
+
+	wint<width> rem(abs_c % wuint<width>(abs(rhs)));
+
+	return c < 0 ? -rem : rem;
+}
+
+template<std::size_t width>
+constexpr wint<width> &wint<width>::operator&=(std::uint32_t c)
+{
+	*this = cells[0] & c;
+
+	return *this;
+}
+
+template<std::size_t width>
+constexpr std::uint32_t operator&(const wint<width> &lhs, std::uint32_t c)
+{
+	return lhs.cells[0] & c;
+}
+
+template<std::size_t width>
+constexpr wint<width> operator&(std::uint32_t c, const wint<width> &rhs)
+{
+	wint<width> res(0);
+	res.cells[0] = c & rhs.cells[0];
+	return res;
+}
+
+template<std::size_t width>
+constexpr wint<width> &wint<width>::operator|=(std::uint32_t c)
+{
+	cells[0] |= c;
+
+	return *this;
+}
+
+template<std::size_t width>
+constexpr wint<width> operator|(const wint<width> &lhs, std::uint32_t c)
+{
+	wint<width> res(lhs);
+	res |= c;
+	return res;
+}
+
+template<std::size_t width>
+constexpr wint<width> operator|(std::uint32_t c, const wint<width> &rhs)
+{
+	wint<width> res(rhs);
+	res |= c;
+	return res;
+}
+
+template<std::size_t width>
+constexpr wint<width> &wint<width>::operator^=(std::uint32_t c)
+{
+	cells[0] ^= c;
+
+	return *this;
+}
+
+template<std::size_t width>
+constexpr wint<width> operator^(const wint<width> &lhs, std::uint32_t c)
+{
+	wint<width> res(lhs);
+	res ^= c;
+	return res;
+}
+
+template<std::size_t width>
+constexpr wint<width> operator^(std::uint32_t c, const wint<width> &rhs)
+{
+	wint<width> res(rhs);
+	res ^= c;
+	return res;
+}
+
+template<std::size_t width>
+constexpr wint<width> abs(const wint<width> &obj)
+{
+	return obj.is_negative() ? -obj : obj;
+}
+
+template<std::size_t width>
+std::string to_string(const wint<width> &obj)
+{
+	if (obj.is_zero()) {
+		return "0";
+	}
+
+	std::string res;
+
+	for (wuint<width> tmp(abs(obj)); !tmp.is_zero(); tmp /= 10) {
+		std::uint32_t digit = tmp % 10;
+		res.push_back('0' + digit);
+	}
+
+	if (obj.is_negative()) {
+		res.push_back('-');
+	}
+
+	std::ranges::reverse(res);
+
+	return res;
+}
+
+template<std::size_t width>
+constexpr wint<width>::wint(std::string_view sv)
+{
+	*this = from_string<wint<width>>(sv);
+}
+
+template<std::size_t width>
+std::ostream &operator<<(std::ostream &os, const wint<width> &obj)
+{
+	return os << to_string(obj);
+}
+
+template<std::size_t width>
+std::istream &operator>>(std::istream &is, wint<width> &obj)
+{
+	char ch = '\0';
+
+	if (!(is >> ch)) {
+		obj = 0;
+		return is;
+	}
+
+	std::string s;
+
+	if (ch == '-') {
+		s.push_back(ch);
+
+		if (!is.get(ch)) {
+			obj = 0;
+			return is;
+		}
+	}
+
+	if (!(ch >= '0' && ch <= '9')) {
+		obj = 0;
+		is.setstate(std::ios::failbit);
+		return is;
+	}
+
+	s.push_back(ch);
+
+	while (std::istream::traits_type::not_eof(is.peek()) && is.get(ch)) {
+		if (ch >= '0' && ch <= '9') {
+			s.push_back(ch);
+		}
+		else {
+			is.unget();
+			break;
+		}
+	}
+
+	obj = from_string<wint<width>>(s);
+
+	return is;
+}
+
 } // namespace wideint
 
 template<std::size_t width>
 struct std::hash<wideint::wuint<width>>
 {
 	std::size_t operator()(const wideint::wuint<width> &obj) const noexcept
+	{
+		std::size_t hash = 17;
+		for (const auto &cell : obj.cells) {
+			hash = hash * 37 + std::hash<std::uint32_t>()(cell);
+		}
+		return hash;
+	}
+};
+
+template<std::size_t width>
+struct std::hash<wideint::wint<width>>
+{
+	std::size_t operator()(const wideint::wint<width> &obj) const noexcept
 	{
 		std::size_t hash = 17;
 		for (const auto &cell : obj.cells) {
