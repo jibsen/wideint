@@ -761,7 +761,7 @@ std::string to_string(const wuint<width> &obj)
 		res.push_back('0' + digit);
 	}
 
-	std::ranges::reverse(res);
+	std::reverse(res.begin(), res.end());
 
 	return res;
 }
@@ -1606,7 +1606,7 @@ std::string to_string(const wint<width> &obj)
 		res.push_back('-');
 	}
 
-	std::ranges::reverse(res);
+	std::reverse(res.begin(), res.end());
 
 	return res;
 }
