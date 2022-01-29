@@ -83,7 +83,7 @@ struct wuint {
 	constexpr wuint<width> &operator|=(std::uint32_t c);
 	constexpr wuint<width> &operator^=(std::uint32_t c);
 
-	constexpr bool is_zero() const {
+	[[nodiscard]] constexpr bool is_zero() const {
 		for (std::size_t i = 0; i != width; ++i) {
 			if (cells[i]) {
 				return false;
@@ -95,9 +95,9 @@ struct wuint {
 
 	constexpr explicit operator bool() const { return !is_zero(); }
 
-	constexpr bool is_negative() const { return false; }
+	[[nodiscard]] constexpr bool is_negative() const { return false; }
 
-	constexpr std::size_t log2() const {
+	[[nodiscard]] constexpr std::size_t log2() const {
 		for (std::size_t i = width; i--; ) {
 			if (cells[i]) {
 				return std::bit_width(cells[i]) + 32 * i;
@@ -107,7 +107,7 @@ struct wuint {
 		return 0;
 	}
 
-	constexpr std::uint32_t getbit(unsigned int bit) const {
+	[[nodiscard]] constexpr std::uint32_t getbit(unsigned int bit) const {
 		unsigned int pos = bit / 32;
 		unsigned int offs = bit % 32;
 
@@ -923,7 +923,7 @@ struct wint {
 	constexpr wint<width> &operator|=(std::uint32_t c);
 	constexpr wint<width> &operator^=(std::uint32_t c);
 
-	constexpr bool is_zero() const {
+	[[nodiscard]] constexpr bool is_zero() const {
 		for (std::size_t i = 0; i != width; ++i) {
 			if (cells[i]) {
 				return false;
@@ -935,11 +935,11 @@ struct wint {
 
 	constexpr explicit operator bool() const { return !is_zero(); }
 
-	constexpr bool is_negative() const {
+	[[nodiscard]] constexpr bool is_negative() const {
 		return cells.back() & (std::uint32_t(1) << 31);
 	}
 
-	constexpr std::size_t log2() const {
+	[[nodiscard]] constexpr std::size_t log2() const {
 		for (std::size_t i = width; i--; ) {
 			if (cells[i]) {
 				return std::bit_width(cells[i]) + 32 * i;
@@ -949,7 +949,7 @@ struct wint {
 		return 0;
 	}
 
-	constexpr std::uint32_t getbit(unsigned int bit) const {
+	[[nodiscard]] constexpr std::uint32_t getbit(unsigned int bit) const {
 		unsigned int pos = bit / 32;
 		unsigned int offs = bit % 32;
 
