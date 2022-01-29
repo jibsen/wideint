@@ -36,7 +36,7 @@ my own ad hoc solution, and hopefully learn a few things along the way.
 Caveat
 ------
 
-wideint is not production quality. It has not been thoroughly tested, and
+wideint is not "production quality". It has not been thoroughly tested, and
 some of the algorithms used may be slow compared to what you would get with
 one of the established big number libraries. Also, being exact-width and
 stack-allocated means it is only suitable for bounded computations on

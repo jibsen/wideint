@@ -873,6 +873,9 @@ TEST_CASE("wint int32 plus", "[wint]") {
 	REQUIRE(wint64("-1") + 1 == wint64("0"));
 	REQUIRE(wint96("-1") + 1 == wint96("0"));
 
+	REQUIRE(wint32::min() + std::numeric_limits<std::int32_t>::min() == wint32("0"));
+	REQUIRE(wint64("0x80000000") + std::numeric_limits<std::int32_t>::min() == wint64("0"));
+
 	REQUIRE(1 + wint32("1000000000") == wint32("1000000001"));
 	REQUIRE(1 + wint64("1000000000000000000") == wint64("1000000000000000001"));
 	REQUIRE(1 + wint96("1000000000000000000000000000") == wint96("1000000000000000000000000001"));
@@ -911,6 +914,9 @@ TEST_CASE("wint int32 minus", "[wint]") {
 	REQUIRE(wint64("100000000123456789") - 123456789 == wint64("100000000000000000"));
 	REQUIRE(wint96("100000000000000000123456789") - 123456789 == wint96("100000000000000000000000000"));
 
+	REQUIRE(wint32::min() - std::numeric_limits<std::int32_t>::min() == wint32("0"));
+	REQUIRE(wint64("0x80000000") - std::numeric_limits<std::int32_t>::min() == wint64("0x100000000"));
+
 	REQUIRE(0 - wint32("1") == wint32("-1"));
 	REQUIRE(0 - wint64("1") == wint64("-1"));
 	REQUIRE(0 - wint96("1") == wint96("-1"));
@@ -940,6 +946,9 @@ TEST_CASE("wint int32 multiply", "[wint]") {
 	REQUIRE(wint32("10000") * 10000 == wint32("100000000"));
 	REQUIRE(wint64("100000000") * 10000 == wint64("1000000000000"));
 	REQUIRE(wint96("1000000000000") * 10000 == wint96("10000000000000000"));
+
+	REQUIRE(wint32("1") * std::numeric_limits<std::int32_t>::min() == wint32::min());
+	REQUIRE(wint64("1") * std::numeric_limits<std::int32_t>::min() == wint64("-0x80000000"));
 
 	REQUIRE(1 * wint32("1000000000") == wint32("1000000000"));
 	REQUIRE(1 * wint64("1000000000000000000") == wint64("1000000000000000000"));

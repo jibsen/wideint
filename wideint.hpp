@@ -30,6 +30,25 @@
 
 namespace wideint {
 
+namespace detail {
+
+// Negate c without possibly undefined behavior on minimum value
+constexpr std::int32_t safe_negate(std::int32_t c)
+{
+	return std::bit_cast<std::int32_t>(
+		static_cast<std::uint32_t>(
+			0U - static_cast<std::uint32_t>(c)
+		)
+	);
+}
+
+constexpr std::int32_t safe_abs(std::int32_t c)
+{
+	return c < 0 ? safe_negate(c) : c;
+}
+
+} // namespace detail
+
 template<std::size_t width>
 struct wint;
 
@@ -1334,7 +1353,7 @@ template<std::size_t width>
 constexpr wint<width> &wint<width>::operator+=(std::int32_t c)
 {
 	if (c < 0) {
-		std::uint32_t borrow = -c;
+		std::uint32_t borrow = detail::safe_negate(c);
 
 		for (std::size_t i = 0; i != width; ++i) {
 			std::uint64_t w = static_cast<std::uint64_t>(cells[i]) - borrow;
@@ -1376,7 +1395,7 @@ template<std::size_t width>
 constexpr wint<width> &wint<width>::operator-=(std::int32_t c)
 {
 	if (c < 0) {
-		std::uint32_t carry = -c;
+		std::uint32_t carry = detail::safe_negate(c);
 
 		for (std::size_t i = 0; i != width; ++i) {
 			std::uint64_t w = static_cast<std::uint64_t>(cells[i]) + carry;
@@ -1417,7 +1436,7 @@ constexpr wint<width> operator-(std::int32_t c, const wint<width> &rhs)
 template<std::size_t width>
 constexpr wint<width> &wint<width>::operator*=(std::int32_t c)
 {
-	std::uint32_t abs_c = c < 0 ? -c : c;
+	std::uint32_t abs_c = detail::safe_abs(c);
 
 	std::uint32_t carry = 0;
 
@@ -1453,7 +1472,7 @@ constexpr wint<width> operator*(std::int32_t c, const wint<width> &rhs)
 template<std::size_t width>
 constexpr wint<width> &wint<width>::operator/=(std::int32_t c)
 {
-	std::uint32_t abs_c = c < 0 ? -c : c;
+	std::uint32_t abs_c = detail::safe_abs(c);
 
 	wint<width> quot(wuint<width>(abs(*this)) / abs_c);
 
@@ -1473,7 +1492,7 @@ constexpr wint<width> operator/(const wint<width> &lhs, std::int32_t c)
 template<std::size_t width>
 constexpr wint<width> operator/(std::int32_t c, const wint<width> &rhs)
 {
-	std::uint32_t abs_c = c < 0 ? -c : c;
+	std::uint32_t abs_c = detail::safe_abs(c);
 
 	wint<width> quot(abs_c / wuint<width>(abs(rhs)));
 
@@ -1483,7 +1502,7 @@ constexpr wint<width> operator/(std::int32_t c, const wint<width> &rhs)
 template<std::size_t width>
 constexpr wint<width> &wint<width>::operator%=(std::int32_t c)
 {
-	std::uint32_t abs_c = c < 0 ? -c : c;
+	std::uint32_t abs_c = detail::safe_abs(c);
 
 	wint<width> rem(wuint<width>(abs(*this)) % abs_c);
 
@@ -1495,17 +1514,17 @@ constexpr wint<width> &wint<width>::operator%=(std::int32_t c)
 template<std::size_t width>
 constexpr std::int32_t operator%(const wint<width> &lhs, std::int32_t c)
 {
-	std::uint32_t abs_c = c < 0 ? -c : c;
+	std::uint32_t abs_c = detail::safe_abs(c);
 
 	std::int32_t rem = std::bit_cast<std::int32_t>(wuint<width>(abs(lhs)) % abs_c);
 
-	return lhs.is_negative() ? -rem : rem;
+	return lhs.is_negative() ? detail::safe_negate(rem) : rem;
 }
 
 template<std::size_t width>
 constexpr wint<width> operator%(std::int32_t c, const wint<width> &rhs)
 {
-	std::uint32_t abs_c = c < 0 ? -c : c;
+	std::uint32_t abs_c = detail::safe_abs(c);
 
 	wint<width> rem(abs_c % wuint<width>(abs(rhs)));
 
