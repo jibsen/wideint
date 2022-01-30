@@ -44,7 +44,8 @@ constexpr std::int32_t safe_negate(std::int32_t c)
 
 constexpr std::int32_t safe_abs(std::int32_t c)
 {
-	return c < 0 ? safe_negate(c) : c;
+	std::int32_t neg_c = safe_negate(c);
+	return neg_c < 0 ? c : neg_c;
 }
 
 } // namespace detail
