@@ -1,0 +1,58 @@
+name: wideint CI
+
+on: [push, pull_request]
+
+jobs:
+  windows:
+    name: Windows ${{ matrix.config.name }}
+    runs-on: windows-latest
+
+    strategy:
+      matrix:
+        config:
+          - name: MSVC x86
+            generator: Visual Studio 16 2019
+            cmake-flags: -A Win32
+
+          - name: MSVC x64
+            generator: Visual Studio 16 2019
+            cmake-flags: -A x64
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Configure
+        run: cmake -G "${{ matrix.config.generator }}" ${{ matrix.config.cmake-flags }} -B build
+
+      - name: Build
+        run: cd build && cmake --build . --config Debug
+
+      - name: Test
+        run: cd build && ctest -V --output-on-failure --interactive-debug-mode 0 -C Debug
+
+  macos:
+    name: macOS ${{ matrix.config.name }}
+    runs-on: macos-latest
+    env:
+      CC: ${{ matrix.config.cc }}
+      CXX: ${{ matrix.config.cxx }}
+
+    strategy:
+      matrix:
+        config:
+          - name: GCC UBSan
+            cc: gcc-11
+            cxx: g++-11
+            cmake-flags: -DCMAKE_CXX_FLAGS_DEBUG='-fsanitize=undefined'
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Configure
+        run: cmake ${{ matrix.config.cmake-flags }} -DCMAKE_BUILD_TYPE=Debug -B build
+
+      - name: Build
+        run: cd build && make VERBOSE=1
+
+      - name: Test
+        run: cd build && ctest -V --output-on-failure --interactive-debug-mode 0

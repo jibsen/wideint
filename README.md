@@ -4,6 +4,7 @@ wideint - wide exact-width integer types
 
 Copyright (c) 2022 Joergen Ibsen
 
+[![wideint CI](https://github.com/jibsen/wideint/actions/workflows/wideint-ci-workflow.yaml/badge.svg)](https://github.com/jibsen/wideint/actions)
 
 About
 -----
