@@ -43,7 +43,12 @@ jobs:
           - name: GCC UBSan
             cc: gcc-11
             cxx: g++-11
-            cmake-flags: -DCMAKE_CXX_FLAGS_DEBUG='-fsanitize=undefined'
+            cmake-flags: -DCMAKE_CXX_FLAGS_DEBUG='-g -fsanitize=undefined'
+
+          - name: GCC ASan
+            cc: gcc-11
+            cxx: g++-11
+            cmake-flags: -DCMAKE_CXX_FLAGS_DEBUG='-O1 -g -fsanitize=address -fno-omit-frame-pointer'
 
     steps:
       - uses: actions/checkout@v2
