@@ -24,9 +24,12 @@
 #include <compare>
 #include <cstdint>
 #include <functional>
-#include <iostream>
 #include <string>
 #include <string_view>
+
+#if !defined(WIDEINT_NO_IOSTREAMS)
+#  include <iostream>
+#endif
 
 namespace wideint {
 
@@ -836,6 +839,7 @@ constexpr wuint<width>::wuint(std::string_view sv)
 	*this = from_string<wuint<width>>(sv);
 }
 
+#if !defined(WIDEINT_NO_IOSTREAMS)
 template<std::size_t width>
 std::ostream &operator<<(std::ostream &os, const wuint<width> &obj)
 {
@@ -885,6 +889,7 @@ std::istream &operator>>(std::istream &is, wuint<width> &obj)
 
 	return is;
 }
+#endif // !defined(WIDEINT_NO_IOSTREAMS)
 
 template<std::size_t width>
 struct wint {
@@ -1637,6 +1642,7 @@ constexpr wint<width>::wint(std::string_view sv)
 	*this = from_string<wint<width>>(sv);
 }
 
+#if !defined(WIDEINT_NO_IOSTREAMS)
 template<std::size_t width>
 std::ostream &operator<<(std::ostream &os, const wint<width> &obj)
 {
@@ -1686,6 +1692,7 @@ std::istream &operator>>(std::istream &is, wint<width> &obj)
 
 	return is;
 }
+#endif // !defined(WIDEINT_NO_IOSTREAMS)
 
 } // namespace wideint
 

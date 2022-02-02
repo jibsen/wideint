@@ -126,7 +126,8 @@ Output
 
 There is a `to_string()` function that converts a wideint to a `std::string`.
 
-There are operator overloads for stream input and output.
+There are operator overloads for stream input and output. You can disable
+these by defining `WIDEINT_NO_IOSTREAMS`.
 
 
 Alternatives
