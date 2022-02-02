@@ -5,7 +5,7 @@ project(wideint CXX)
 include(CTest)
 
 add_library(wideint INTERFACE wideint.hpp)
-target_include_directories(wideint INTERFACE .)
+target_include_directories(wideint INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}>)
 set_target_properties(wideint PROPERTIES CXX_STANDARD 20)
 
 if(BUILD_TESTING)
