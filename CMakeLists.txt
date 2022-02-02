@@ -1,8 +1,14 @@
-cmake_minimum_required(VERSION 3.21)
+cmake_minimum_required(VERSION 3.19)
 
 project(wideint CXX)
 
 include(CTest)
+
+if(MSVC)
+  add_compile_options(/W3)
+else()
+  add_compile_options(-Wall -Wextra -pedantic)
+endif()
 
 add_library(wideint INTERFACE wideint.hpp)
 target_include_directories(wideint INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}>)
