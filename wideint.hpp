@@ -22,8 +22,10 @@
 #include <array>
 #include <bit>
 #include <compare>
+#include <cstddef>
 #include <cstdint>
 #include <functional>
+#include <limits>
 #include <string>
 #include <string_view>
 
@@ -895,13 +897,13 @@ template<std::size_t width>
 struct wint {
 	static constexpr wint<width> min() {
 		wint<width> res(0);
-		res.cells.back() = 0x80000000;
+		res.cells.back() = static_cast<std::uint32_t>(std::numeric_limits<std::int32_t>::min());
 		return res;
 	}
 
 	static constexpr wint<width> max() {
 		wint<width> res(-1);
-		res.cells.back() = 0x7FFFFFFF;
+		res.cells.back() = static_cast<std::uint32_t>(std::numeric_limits<std::int32_t>::max());
 		return res;
 	}
 
