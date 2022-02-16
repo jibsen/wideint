@@ -95,8 +95,8 @@ struct wuint {
 	constexpr wuint<width> &operator|=(const wuint<width> &rhs);
 	constexpr wuint<width> &operator^=(const wuint<width> &rhs);
 
-	constexpr wuint<width> &operator<<=(unsigned int shift);
-	constexpr wuint<width> &operator>>=(unsigned int shift);
+	constexpr wuint<width> &operator<<=(std::size_t shift);
+	constexpr wuint<width> &operator>>=(std::size_t shift);
 
 	constexpr wuint<width> &operator+=(std::uint32_t c);
 	constexpr wuint<width> &operator-=(std::uint32_t c);
@@ -132,16 +132,16 @@ struct wuint {
 		return 0;
 	}
 
-	[[nodiscard]] constexpr std::uint32_t getbit(unsigned int bit) const {
-		unsigned int pos = bit / 32;
-		unsigned int offs = bit % 32;
+	[[nodiscard]] constexpr std::uint32_t getbit(std::size_t bit) const {
+		std::size_t pos = bit / 32;
+		std::size_t offs = bit % 32;
 
 		return (cells[pos] >> offs) & 1U;
 	}
 
-	constexpr wuint<width> &setbit(unsigned int bit) {
-		unsigned int pos = bit / 32;
-		unsigned int offs = bit % 32;
+	constexpr wuint<width> &setbit(std::size_t bit) {
+		std::size_t pos = bit / 32;
+		std::size_t offs = bit % 32;
 
 		cells[pos] |= std::uint32_t(1) << offs;
 
@@ -347,13 +347,13 @@ constexpr wuint<width> &wuint<width>::operator/=(const wuint<width> &rhs)
 
 	wuint<width> quot(0);
 	wuint<width> rem(*this);
-	wuint<width> rhs_adjusted = rhs << static_cast<unsigned int>(adjust);
+	wuint<width> rhs_adjusted = rhs << adjust;
 
 	for (std::size_t bit_i = adjust + 1; bit_i--; ) {
 		auto cmp = rem <=> rhs_adjusted;
 
 		if (cmp >= 0) {
-			quot.setbit(static_cast<unsigned int>(bit_i));
+			quot.setbit(bit_i);
 
 			rem -= rhs_adjusted;
 
@@ -387,7 +387,7 @@ constexpr wuint<width> &wuint<width>::operator%=(const wuint<width> &rhs)
 	auto adjust = lhs_bit_size < rhs_bit_size ? 0 : lhs_bit_size - rhs_bit_size;
 
 	wuint<width> rem(*this);
-	wuint<width> rhs_adjusted = rhs << static_cast<unsigned int>(adjust);
+	wuint<width> rhs_adjusted = rhs << adjust;
 
 	for (std::size_t bit_i = adjust + 1; bit_i--; ) {
 		auto cmp = rem <=> rhs_adjusted;
@@ -471,7 +471,7 @@ constexpr wuint<width> operator^(const wuint<width> &lhs, const wuint<width> &rh
 }
 
 template<std::size_t width>
-constexpr wuint<width> &wuint<width>::operator<<=(unsigned int shift)
+constexpr wuint<width> &wuint<width>::operator<<=(std::size_t shift)
 {
 	std::size_t pos = shift / 32;
 	std::size_t offs = shift % 32;
@@ -496,7 +496,7 @@ constexpr wuint<width> &wuint<width>::operator<<=(unsigned int shift)
 }
 
 template<std::size_t width>
-constexpr wuint<width> operator<<(const wuint<width> &lhs, unsigned int shift)
+constexpr wuint<width> operator<<(const wuint<width> &lhs, std::size_t shift)
 {
 	wuint<width> res(lhs);
 	res <<= shift;
@@ -504,7 +504,7 @@ constexpr wuint<width> operator<<(const wuint<width> &lhs, unsigned int shift)
 }
 
 template<std::size_t width>
-constexpr wuint<width> &wuint<width>::operator>>=(unsigned int shift)
+constexpr wuint<width> &wuint<width>::operator>>=(std::size_t shift)
 {
 	std::size_t pos = shift / 32;
 	std::size_t offs = shift % 32;
@@ -529,7 +529,7 @@ constexpr wuint<width> &wuint<width>::operator>>=(unsigned int shift)
 }
 
 template<std::size_t width>
-constexpr wuint<width> operator>>(const wuint<width> &lhs, unsigned int shift)
+constexpr wuint<width> operator>>(const wuint<width> &lhs, std::size_t shift)
 {
 	wuint<width> res(lhs);
 	res >>= shift;
@@ -937,8 +937,8 @@ struct wint {
 	constexpr wint<width> &operator|=(const wint<width> &rhs);
 	constexpr wint<width> &operator^=(const wint<width> &rhs);
 
-	constexpr wint<width> &operator<<=(unsigned int shift);
-	constexpr wint<width> &operator>>=(unsigned int shift);
+	constexpr wint<width> &operator<<=(std::size_t shift);
+	constexpr wint<width> &operator>>=(std::size_t shift);
 
 	constexpr wint<width> &operator+=(std::int32_t c);
 	constexpr wint<width> &operator-=(std::int32_t c);
@@ -976,16 +976,16 @@ struct wint {
 		return 0;
 	}
 
-	[[nodiscard]] constexpr std::uint32_t getbit(unsigned int bit) const {
-		unsigned int pos = bit / 32;
-		unsigned int offs = bit % 32;
+	[[nodiscard]] constexpr std::uint32_t getbit(std::size_t bit) const {
+		std::size_t pos = bit / 32;
+		std::size_t offs = bit % 32;
 
 		return (cells[pos] >> offs) & 1U;
 	}
 
-	constexpr wint<width> &setbit(unsigned int bit) {
-		unsigned int pos = bit / 32;
-		unsigned int offs = bit % 32;
+	constexpr wint<width> &setbit(std::size_t bit) {
+		std::size_t pos = bit / 32;
+		std::size_t offs = bit % 32;
 
 		cells[pos] |= std::uint32_t(1) << offs;
 
@@ -1288,7 +1288,7 @@ constexpr wint<width> operator^(const wint<width> &lhs, const wint<width> &rhs)
 }
 
 template<std::size_t width>
-constexpr wint<width> &wint<width>::operator<<=(unsigned int shift)
+constexpr wint<width> &wint<width>::operator<<=(std::size_t shift)
 {
 	std::size_t pos = shift / 32;
 	std::size_t offs = shift % 32;
@@ -1313,7 +1313,7 @@ constexpr wint<width> &wint<width>::operator<<=(unsigned int shift)
 }
 
 template<std::size_t width>
-constexpr wint<width> operator<<(const wint<width> &lhs, unsigned int shift)
+constexpr wint<width> operator<<(const wint<width> &lhs, std::size_t shift)
 {
 	wint<width> res(lhs);
 	res <<= shift;
@@ -1321,7 +1321,7 @@ constexpr wint<width> operator<<(const wint<width> &lhs, unsigned int shift)
 }
 
 template<std::size_t width>
-constexpr wint<width> &wint<width>::operator>>=(unsigned int shift)
+constexpr wint<width> &wint<width>::operator>>=(std::size_t shift)
 {
 	std::size_t pos = shift / 32;
 	std::size_t offs = shift % 32;
@@ -1350,7 +1350,7 @@ constexpr wint<width> &wint<width>::operator>>=(unsigned int shift)
 }
 
 template<std::size_t width>
-constexpr wint<width> operator>>(const wint<width> &lhs, unsigned int shift)
+constexpr wint<width> operator>>(const wint<width> &lhs, std::size_t shift)
 {
 	wint<width> res(lhs);
 	res >>= shift;
