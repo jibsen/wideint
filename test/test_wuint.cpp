@@ -1546,25 +1546,108 @@ TEST_CASE("wuint stream output", "[wuint]") {
 	}
 }
 
-TEST_CASE("wuint stream input", "[wuint]") {
-	auto str = GENERATE(as<std::string>{},
-		"0",
-		"1",
-		"-1",
-		"36973223102941133555797576908",
-		"-36973223102941133555797576908",
-		"79228162514264337593543950335"
-	);
+TEST_CASE("wuint has_single_bit", "[wuint]") {
+	REQUIRE(has_single_bit(wuint64("0x8000000000000000")));
+	REQUIRE(has_single_bit(wuint64("0x4000000000000000")));
+	REQUIRE(has_single_bit(wuint64("1")));
+	REQUIRE(has_single_bit(wuint64("2")));
+	REQUIRE(!has_single_bit(wuint64("0x8000000000000001")));
+	REQUIRE(!has_single_bit(wuint64("0x9000000000000000")));
+	REQUIRE(!has_single_bit(wuint64("3")));
+	REQUIRE(!has_single_bit(wuint64("-1")));
+}
 
-	std::istringstream in(str);
+TEST_CASE("wuint bit_ceil", "[wuint]") {
+	REQUIRE(bit_ceil(wuint64("0")) == wuint64("1"));
+	REQUIRE(bit_ceil(wuint64("1")) == wuint64("1"));
+	REQUIRE(bit_ceil(wuint64("2")) == wuint64("2"));
+	REQUIRE(bit_ceil(wuint64("3")) == wuint64("4"));
+	REQUIRE(bit_ceil(wuint64("4")) == wuint64("4"));
+	REQUIRE(bit_ceil(wuint64("5")) == wuint64("8"));
+	REQUIRE(bit_ceil(wuint64("0x4000000000000000")) == wuint64("0x4000000000000000"));
+	REQUIRE(bit_ceil(wuint64("0x4000000000000001")) == wuint64("0x8000000000000000"));
+	REQUIRE(bit_ceil(wuint64("0x7FFFFFFFFFFFFFFF")) == wuint64("0x8000000000000000"));
+}
 
-	SECTION("input value") {
-		wuint96 value(42);
+TEST_CASE("wuint bit_floor", "[wuint]") {
+	REQUIRE(bit_floor(wuint64("0")) == wuint64("0"));
+	REQUIRE(bit_floor(wuint64("1")) == wuint64("1"));
+	REQUIRE(bit_floor(wuint64("2")) == wuint64("2"));
+	REQUIRE(bit_floor(wuint64("3")) == wuint64("2"));
+	REQUIRE(bit_floor(wuint64("4")) == wuint64("4"));
+	REQUIRE(bit_floor(wuint64("5")) == wuint64("4"));
+	REQUIRE(bit_floor(wuint64("0x4000000000000000")) == wuint64("0x4000000000000000"));
+	REQUIRE(bit_floor(wuint64("0x4000000000000001")) == wuint64("0x4000000000000000"));
+	REQUIRE(bit_floor(wuint64("0x7FFFFFFFFFFFFFFF")) == wuint64("0x4000000000000000"));
+	REQUIRE(bit_floor(wuint64("0x8000000000000000")) == wuint64("0x8000000000000000"));
+	REQUIRE(bit_floor(wuint64("0x8FFFFFFFFFFFFFFF")) == wuint64("0x8000000000000000"));
+	REQUIRE(bit_floor(wuint64("0xFFFFFFFFFFFFFFFF")) == wuint64("0x8000000000000000"));
+}
 
-		REQUIRE(in >> value);
+TEST_CASE("wuint countl_zero", "[wuint]") {
+	REQUIRE(countl_zero(wuint64("0")) == 64);
+	REQUIRE(countl_zero(wuint64("1")) == 63);
+	REQUIRE(countl_zero(wuint64("2")) == 62);
+	REQUIRE(countl_zero(wuint64("0x0000000080000000")) == 32);
+	REQUIRE(countl_zero(wuint64("0x4000000000000000")) == 1);
+	REQUIRE(countl_zero(wuint64("0x7FFFFFFFFFFFFFFF")) == 1);
+	REQUIRE(countl_zero(wuint64("0x8000000000000000")) == 0);
+	REQUIRE(countl_zero(wuint64("0xFFFFFFFFFFFFFFFF")) == 0);
+}
 
-		REQUIRE(value == wuint96(str));
-	}
+TEST_CASE("wuint countl_one", "[wuint]") {
+	REQUIRE(countl_one(wuint64("0")) == 0);
+	REQUIRE(countl_one(wuint64("1")) == 0);
+	REQUIRE(countl_one(wuint64("2")) == 0);
+	REQUIRE(countl_one(wuint64("0x0000000080000000")) == 0);
+	REQUIRE(countl_one(wuint64("0x4000000000000000")) == 0);
+	REQUIRE(countl_one(wuint64("0x7FFFFFFFFFFFFFFF")) == 0);
+	REQUIRE(countl_one(wuint64("0x8000000000000000")) == 1);
+	REQUIRE(countl_one(wuint64("0xBFFFFFFFFFFFFFFF")) == 1);
+	REQUIRE(countl_one(wuint64("0xC000000000000000")) == 2);
+	REQUIRE(countl_one(wuint64("0xFFFFFFFFFFFFFFFE")) == 63);
+	REQUIRE(countl_one(wuint64("0xFFFFFFFFFFFFFFFF")) == 64);
+}
+
+TEST_CASE("wuint countr_zero", "[wuint]") {
+	REQUIRE(countr_zero(wuint64("0")) == 64);
+	REQUIRE(countr_zero(wuint64("1")) == 0);
+	REQUIRE(countr_zero(wuint64("2")) == 1);
+	REQUIRE(countr_zero(wuint64("0x0000000080000000")) == 31);
+	REQUIRE(countr_zero(wuint64("0x4000000000000000")) == 62);
+	REQUIRE(countr_zero(wuint64("0x7FFFFFFFFFFFFFFF")) == 0);
+	REQUIRE(countr_zero(wuint64("0x8000000000000000")) == 63);
+	REQUIRE(countr_zero(wuint64("0xFFFFFFFFFFFFFFFF")) == 0);
+}
+
+TEST_CASE("wuint countr_one", "[wuint]") {
+	REQUIRE(countr_one(wuint64("0")) == 0);
+	REQUIRE(countr_one(wuint64("1")) == 1);
+	REQUIRE(countr_one(wuint64("2")) == 0);
+	REQUIRE(countr_one(wuint64("0x0000000080000000")) == 0);
+	REQUIRE(countr_one(wuint64("0x4000000000000000")) == 0);
+	REQUIRE(countr_one(wuint64("0x7FFFFFFFFFFFFFFF")) == 63);
+	REQUIRE(countr_one(wuint64("0x8000000000000000")) == 0);
+	REQUIRE(countr_one(wuint64("0xBFFFFFFFFFFFFFFF")) == 62);
+	REQUIRE(countr_one(wuint64("0xC000000000000000")) == 0);
+	REQUIRE(countr_one(wuint64("0xFFFFFFFFFFFFFFFE")) == 0);
+	REQUIRE(countr_one(wuint64("0xFFFFFFFFFFFFFFFF")) == 64);
+}
+
+TEST_CASE("wuint popcount", "[wuint]") {
+	REQUIRE(popcount(wuint64("0")) == 0);
+	REQUIRE(popcount(wuint64("1")) == 1);
+	REQUIRE(popcount(wuint64("2")) == 1);
+	REQUIRE(popcount(wuint64("0x0000000080000000")) == 1);
+	REQUIRE(popcount(wuint64("0x4000000000000000")) == 1);
+	REQUIRE(popcount(wuint64("0x7FFFFFFFFFFFFFFF")) == 63);
+	REQUIRE(popcount(wuint64("0x8000000000000000")) == 1);
+	REQUIRE(popcount(wuint64("0x5555555555555555")) == 32);
+	REQUIRE(popcount(wuint64("0xAAAAAAAAAAAAAAAA")) == 32);
+	REQUIRE(popcount(wuint64("0xBFFFFFFFFFFFFFFF")) == 63);
+	REQUIRE(popcount(wuint64("0xC000000000000000")) == 2);
+	REQUIRE(popcount(wuint64("0xFFFFFFFFFFFFFFFE")) == 63);
+	REQUIRE(popcount(wuint64("0xFFFFFFFFFFFFFFFF")) == 64);
 }
 
 TEST_CASE("std::hash<wuint>", "[wuint]") {

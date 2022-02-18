@@ -894,6 +894,111 @@ std::istream &operator>>(std::istream &is, wuint<width> &obj)
 #endif // !defined(WIDEINT_NO_IOSTREAMS)
 
 template<std::size_t width>
+constexpr bool has_single_bit(const wuint<width> &x)
+{
+	return popcount(x) == 1;
+}
+
+template<std::size_t width>
+constexpr wuint<width> bit_ceil(const wuint<width> &x)
+{
+	wuint<width> res(0);
+
+	if (x <= 1) {
+		res.cells.front() = 1;
+		return res;
+	}
+
+	res.setbit(bit_width(x - 1));
+
+	return res;
+}
+
+template<std::size_t width>
+constexpr wuint<width> bit_floor(const wuint<width> &x)
+{
+	wuint<width> res(0);
+
+	std::size_t n = bit_width(x);
+
+	if (n != 0) {
+		res.setbit(n - 1);
+	}
+
+	return res;
+}
+
+template<std::size_t width>
+constexpr std::size_t bit_width(const wuint<width> &x)
+{
+	return x.log2();
+}
+
+template<std::size_t width>
+constexpr std::size_t countl_zero(const wuint<width> &x)
+{
+	for (std::size_t i = width; i--; ) {
+		if (x.cells[i]) {
+			return static_cast<std::size_t>(std::countl_zero(x.cells[i]))
+			     + 32 * (width - i - 1);
+		}
+	}
+
+	return 32 * width;
+}
+
+template<std::size_t width>
+constexpr std::size_t countl_one(const wuint<width> &x)
+{
+	for (std::size_t i = width; i--; ) {
+		if (x.cells[i] != static_cast<std::uint32_t>(-1)) {
+			return static_cast<std::size_t>(std::countl_one(x.cells[i]))
+			     + 32 * (width - i - 1);
+		}
+	}
+
+	return 32 * width;
+}
+
+template<std::size_t width>
+constexpr std::size_t countr_zero(const wuint<width> &x)
+{
+	for (std::size_t i = 0; i != width; ++i) {
+		if (x.cells[i]) {
+			return static_cast<std::size_t>(std::countr_zero(x.cells[i]))
+			     + 32 * i;
+		}
+	}
+
+	return 32 * width;
+}
+
+template<std::size_t width>
+constexpr std::size_t countr_one(const wuint<width> &x)
+{
+	for (std::size_t i = 0; i != width; ++i) {
+		if (x.cells[i] != static_cast<std::uint32_t>(-1)) {
+			return static_cast<std::size_t>(std::countr_one(x.cells[i]))
+			     + 32 * i;
+		}
+	}
+
+	return 32 * width;
+}
+
+template<std::size_t width>
+constexpr std::size_t popcount(const wuint<width> &x)
+{
+	std::size_t count = 0;
+
+	for (const auto &cell : x.cells) {
+		count += static_cast<std::size_t>(std::popcount(cell));
+	}
+
+	return count;
+}
+
+template<std::size_t width>
 struct wint {
 	static constexpr wint<width> min() {
 		wint<width> res(0);
