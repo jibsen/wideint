@@ -11,11 +11,11 @@ jobs:
       matrix:
         config:
           - name: MSVC x86
-            generator: Visual Studio 16 2019
+            generator: Visual Studio 17 2022
             cmake-flags: -A Win32
 
           - name: MSVC x64
-            generator: Visual Studio 16 2019
+            generator: Visual Studio 17 2022
             cmake-flags: -A x64
 
     steps:
