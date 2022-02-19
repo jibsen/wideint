@@ -75,17 +75,13 @@ constexpr wint<width> modinv(const wint<width> &a, const wint<width> &n)
 template<std::size_t width>
 constexpr wint<width> modexp(const wint<width> &a, const wint<width> &x, const wint<width> &n)
 {
-	if (x == 1) {
-		return wint<width>(0);
-	}
-
 	const wint<width> base(a % n);
 	wint<width> res(1);
 
 	for (std::size_t bit_i = x.log2(); bit_i--; ) {
 		res = (res * res) % n;
 
-		if (x.getbit(static_cast<unsigned int>(bit_i))) {
+		if (x.getbit(bit_i)) {
 			res = (res * base) % n;
 		}
 	}

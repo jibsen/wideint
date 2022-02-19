@@ -76,17 +76,13 @@ constexpr wuint<width> modinv(const wuint<width> &a, const wuint<width> &n)
 template<std::size_t width>
 constexpr wuint<width> modexp(const wuint<width> &a, const wuint<width> &x, const wuint<width> &n)
 {
-	if (x == 1) {
-		return wuint<width>(0);
-	}
-
 	const wuint<width> base(a % n);
 	wuint<width> res(1);
 
 	for (std::size_t bit_i = x.log2(); bit_i--; ) {
 		res = (res * res) % n;
 
-		if (x.getbit(static_cast<unsigned int>(bit_i))) {
+		if (x.getbit(bit_i)) {
 			res = (res * base) % n;
 		}
 	}
