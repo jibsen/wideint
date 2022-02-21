@@ -343,7 +343,41 @@ constexpr wuint<width> &wuint<width>::operator/=(const wuint<width> &rhs)
 	auto lhs_bit_size = log2();
 	auto rhs_bit_size = rhs.log2();
 
-	auto adjust = lhs_bit_size < rhs_bit_size ? 0 : lhs_bit_size - rhs_bit_size;
+	if (lhs_bit_size < rhs_bit_size) {
+		cells.fill(0);
+		return *this;
+	}
+
+	if (lhs_bit_size == rhs_bit_size) {
+		if (*this >= rhs) {
+			cells.fill(0);
+			cells.front() = 1;
+		}
+		else {
+			cells.fill(0);
+		}
+
+		return *this;
+	}
+
+	if (lhs_bit_size <= 32) {
+		*this = cells.front() / rhs.cells.front();
+
+		return *this;
+	}
+
+	if (rhs_bit_size <= 32) {
+		if (std::has_single_bit(rhs.cells.front())) {
+			*this >>= std::countr_zero(rhs.cells.front());
+		}
+		else {
+			*this /= rhs.cells.front();
+		}
+
+		return *this;
+	}
+
+	auto adjust = lhs_bit_size - rhs_bit_size;
 
 	wuint<width> quot(0);
 	wuint<width> rem(*this);
@@ -384,7 +418,31 @@ constexpr wuint<width> &wuint<width>::operator%=(const wuint<width> &rhs)
 	auto lhs_bit_size = log2();
 	auto rhs_bit_size = rhs.log2();
 
-	auto adjust = lhs_bit_size < rhs_bit_size ? 0 : lhs_bit_size - rhs_bit_size;
+	if (lhs_bit_size < rhs_bit_size) {
+		return *this;
+	}
+
+	if (lhs_bit_size == rhs_bit_size) {
+		if (*this >= rhs) {
+			*this -= rhs;
+		}
+
+		return *this;
+	}
+
+	if (lhs_bit_size <= 32) {
+		*this = cells.front() % rhs.cells.front();
+
+		return *this;
+	}
+
+	if (rhs_bit_size <= 32) {
+		*this %= rhs.cells.front();
+
+		return *this;
+	}
+
+	auto adjust = lhs_bit_size - rhs_bit_size;
 
 	wuint<width> rem(*this);
 	wuint<width> rhs_adjusted = rhs << adjust;
