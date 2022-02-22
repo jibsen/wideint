@@ -66,7 +66,7 @@ struct wuint {
 
 	static constexpr wuint<width> max() {
 		wuint<width> res(0);
-		res.cells.fill(-1);
+		res.cells.fill(std::numeric_limits<std::uint32_t>::max());
 		return res;
 	}
 
@@ -368,7 +368,7 @@ constexpr wuint<width> &wuint<width>::operator/=(const wuint<width> &rhs)
 
 	if (rhs_bit_size <= 32) {
 		if (std::has_single_bit(rhs.cells.front())) {
-			*this >>= std::countr_zero(rhs.cells.front());
+			*this >>= static_cast<std::size_t>(std::countr_zero(rhs.cells.front()));
 		}
 		else {
 			*this /= rhs.cells.front();
@@ -841,7 +841,7 @@ std::string to_string(const wuint<width> &obj)
 
 	for (wuint<width> tmp = obj; !tmp.is_zero(); tmp /= 10) {
 		std::uint32_t digit = tmp % 10;
-		res.push_back('0' + digit);
+		res.push_back(static_cast<char>('0' + digit));
 	}
 
 	std::reverse(res.begin(), res.end());
@@ -1074,7 +1074,7 @@ struct wint {
 
 	constexpr explicit wint(std::int32_t c) {
 		if (c < 0) {
-			cells.fill(-1);
+			cells.fill(static_cast<std::uint32_t>(-1));
 		}
 		cells[0] = static_cast<std::uint32_t>(c);
 	}
@@ -1084,7 +1084,7 @@ struct wint {
 	constexpr explicit wint(const wuint<width> &other) : cells{other.cells} {}
 
 	constexpr wint<width> &operator=(std::int32_t c) {
-		cells.fill(c < 0 ? -1 : 0);
+		cells.fill(static_cast<std::uint32_t>(c < 0 ? -1 : 0));
 		cells[0] = static_cast<std::uint32_t>(c);
 
 		return *this;
@@ -1212,7 +1212,7 @@ struct wint {
 		bool negative = is_negative();
 
 		if (negative == (c < 0)) {
-			std::uint32_t fill = c < 0 ? -1 : 0;
+			std::uint32_t fill = static_cast<std::uint32_t>(c < 0 ? -1 : 0);
 
 			for (std::size_t i = width - 1; i != 0; --i) {
 				if (cells[i] != fill) {
@@ -1233,7 +1233,7 @@ struct wint {
 			return false;
 		}
 
-		std::uint32_t fill = c < 0 ? -1 : 0;
+		std::uint32_t fill = static_cast<std::uint32_t>(c < 0 ? -1 : 0);
 
 		for (std::size_t i = 1; i != width; ++i) {
 			if (cells[i] != fill) {
@@ -1489,7 +1489,7 @@ constexpr wint<width> &wint<width>::operator>>=(std::size_t shift)
 	std::size_t pos = shift / 32;
 	std::size_t offs = shift % 32;
 
-	std::uint32_t fill = is_negative() ? -1 : 0;
+	std::uint32_t fill = static_cast<std::uint32_t>(is_negative() ? -1 : 0);
 
 	std::uint64_t w = static_cast<std::uint64_t>(cells[pos]) << 32;
 	cells[pos] = fill;
@@ -1524,7 +1524,7 @@ template<std::size_t width>
 constexpr wint<width> &wint<width>::operator+=(std::int32_t c)
 {
 	if (c < 0) {
-		std::uint32_t borrow = detail::safe_negate(c);
+		std::uint32_t borrow = static_cast<std::uint32_t>(detail::safe_negate(c));
 
 		for (std::size_t i = 0; i != width; ++i) {
 			std::uint64_t w = static_cast<std::uint64_t>(cells[i]) - borrow;
@@ -1535,7 +1535,7 @@ constexpr wint<width> &wint<width>::operator+=(std::int32_t c)
 		return *this;
 	}
 
-	std::uint32_t carry = c;
+	std::uint32_t carry = static_cast<std::uint32_t>(c);
 
 	for (std::size_t i = 0; i != width; ++i) {
 		std::uint64_t w = static_cast<std::uint64_t>(cells[i]) + carry;
@@ -1566,7 +1566,7 @@ template<std::size_t width>
 constexpr wint<width> &wint<width>::operator-=(std::int32_t c)
 {
 	if (c < 0) {
-		std::uint32_t carry = detail::safe_negate(c);
+		std::uint32_t carry = static_cast<std::uint32_t>(detail::safe_negate(c));
 
 		for (std::size_t i = 0; i != width; ++i) {
 			std::uint64_t w = static_cast<std::uint64_t>(cells[i]) + carry;
@@ -1577,7 +1577,7 @@ constexpr wint<width> &wint<width>::operator-=(std::int32_t c)
 		return *this;
 	}
 
-	std::uint32_t borrow = c;
+	std::uint32_t borrow = static_cast<std::uint32_t>(c);
 
 	for (std::size_t i = 0; i != width; ++i) {
 		std::uint64_t w = static_cast<std::uint64_t>(cells[i]) - borrow;
@@ -1607,7 +1607,7 @@ constexpr wint<width> operator-(std::int32_t c, const wint<width> &rhs)
 template<std::size_t width>
 constexpr wint<width> &wint<width>::operator*=(std::int32_t c)
 {
-	std::uint32_t abs_c = detail::safe_abs(c);
+	std::uint32_t abs_c = static_cast<std::uint32_t>(detail::safe_abs(c));
 
 	std::uint32_t carry = 0;
 
@@ -1643,7 +1643,7 @@ constexpr wint<width> operator*(std::int32_t c, const wint<width> &rhs)
 template<std::size_t width>
 constexpr wint<width> &wint<width>::operator/=(std::int32_t c)
 {
-	std::uint32_t abs_c = detail::safe_abs(c);
+	std::uint32_t abs_c = static_cast<std::uint32_t>(detail::safe_abs(c));
 
 	wint<width> quot(wuint<width>(abs(*this)) / abs_c);
 
@@ -1663,7 +1663,7 @@ constexpr wint<width> operator/(const wint<width> &lhs, std::int32_t c)
 template<std::size_t width>
 constexpr wint<width> operator/(std::int32_t c, const wint<width> &rhs)
 {
-	std::uint32_t abs_c = detail::safe_abs(c);
+	std::uint32_t abs_c = static_cast<std::uint32_t>(detail::safe_abs(c));
 
 	wint<width> quot(abs_c / wuint<width>(abs(rhs)));
 
@@ -1673,7 +1673,7 @@ constexpr wint<width> operator/(std::int32_t c, const wint<width> &rhs)
 template<std::size_t width>
 constexpr wint<width> &wint<width>::operator%=(std::int32_t c)
 {
-	std::uint32_t abs_c = detail::safe_abs(c);
+	std::uint32_t abs_c = static_cast<std::uint32_t>(detail::safe_abs(c));
 
 	wint<width> rem(wuint<width>(abs(*this)) % abs_c);
 
@@ -1685,7 +1685,7 @@ constexpr wint<width> &wint<width>::operator%=(std::int32_t c)
 template<std::size_t width>
 constexpr std::int32_t operator%(const wint<width> &lhs, std::int32_t c)
 {
-	std::uint32_t abs_c = detail::safe_abs(c);
+	std::uint32_t abs_c = static_cast<std::uint32_t>(detail::safe_abs(c));
 
 	std::int32_t rem = std::bit_cast<std::int32_t>(wuint<width>(abs(lhs)) % abs_c);
 
@@ -1695,7 +1695,7 @@ constexpr std::int32_t operator%(const wint<width> &lhs, std::int32_t c)
 template<std::size_t width>
 constexpr wint<width> operator%(std::int32_t c, const wint<width> &rhs)
 {
-	std::uint32_t abs_c = detail::safe_abs(c);
+	std::uint32_t abs_c = static_cast<std::uint32_t>(detail::safe_abs(c));
 
 	wint<width> rem(abs_c % wuint<width>(abs(rhs)));
 
@@ -1789,7 +1789,7 @@ std::string to_string(const wint<width> &obj)
 
 	for (wuint<width> tmp(abs(obj)); !tmp.is_zero(); tmp /= 10) {
 		std::uint32_t digit = tmp % 10;
-		res.push_back('0' + digit);
+		res.push_back(static_cast<char>('0' + digit));
 	}
 
 	if (obj.is_negative()) {
