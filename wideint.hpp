@@ -78,6 +78,24 @@ struct wuint {
 
 	constexpr explicit wuint(const wint<width> &other) : cells{other.cells} {}
 
+	template<std::size_t other_width>
+	constexpr explicit wuint(const wuint<other_width> &other) {
+		if constexpr (width > other_width) {
+			for (std::size_t i = 0; i != other_width; ++i) {
+				cells[i] = other.cells[i];
+			}
+
+			for (std::size_t i = other_width; i != width; ++i) {
+				cells[i] = 0;
+			}
+		}
+		else {
+			for (std::size_t i = 0; i != width; ++i) {
+				cells[i] = other.cells[i];
+			}
+		}
+	}
+
 	constexpr wuint<width> &operator=(std::uint32_t c) {
 		cells.fill(0);
 		cells[0] = c;
@@ -1082,6 +1100,26 @@ struct wint {
 	constexpr explicit wint(std::string_view sv);
 
 	constexpr explicit wint(const wuint<width> &other) : cells{other.cells} {}
+
+	template<std::size_t other_width>
+	constexpr explicit wint(const wint<other_width> &other) {
+		if constexpr (width > other_width) {
+			std::uint32_t fill = static_cast<std::uint32_t>(other.is_negative() ? -1 : 0);
+
+			for (std::size_t i = 0; i != other_width; ++i) {
+				cells[i] = other.cells[i];
+			}
+
+			for (std::size_t i = other_width; i != width; ++i) {
+				cells[i] = fill;
+			}
+		}
+		else {
+			for (std::size_t i = 0; i != width; ++i) {
+				cells[i] = other.cells[i];
+			}
+		}
+	}
 
 	constexpr wint<width> &operator=(std::int32_t c) {
 		cells.fill(static_cast<std::uint32_t>(c < 0 ? -1 : 0));
