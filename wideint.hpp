@@ -395,26 +395,100 @@ constexpr wuint<width> &wuint<width>::operator/=(const wuint<width> &rhs)
 		return *this;
 	}
 
-	auto adjust = lhs_bit_size - rhs_bit_size;
+	std::size_t adjust = lhs_bit_size - rhs_bit_size;
 
-	wuint<width> quot(0);
-	wuint<width> rem(*this);
-	wuint<width> rhs_adjusted = rhs << adjust;
+	if (adjust < 4) {
+		wuint<width> quot(0);
+		wuint<width> rem(*this);
+		wuint<width> rhs_adjusted = rhs << adjust;
 
-	for (std::size_t bit_i = adjust + 1; bit_i--; ) {
-		auto cmp = rem <=> rhs_adjusted;
+		for (std::size_t bit_i = adjust + 1; bit_i--; ) {
+			auto cmp = rem <=> rhs_adjusted;
 
-		if (cmp >= 0) {
-			quot.setbit(bit_i);
+			if (cmp >= 0) {
+				quot.setbit(bit_i);
 
-			rem -= rhs_adjusted;
+				rem -= rhs_adjusted;
 
-			if (cmp == 0) {
-				break;
+				if (cmp == 0) {
+					break;
+				}
 			}
+
+			rhs_adjusted >>= 1;
 		}
 
-		rhs_adjusted >>= 1;
+		*this = quot;
+
+		return *this;
+	}
+
+	std::size_t n = (lhs_bit_size - 1) / 32;
+	std::size_t t = (rhs_bit_size - 1) / 32;
+
+	std::size_t shift = static_cast<std::size_t>(std::countl_zero(rhs.cells[t]));
+
+	// Normalize
+	auto x = wuint<width + 1>(*this) << shift;
+	auto y = rhs << shift;
+
+	wuint<width> quot(0);
+
+	for (std::size_t i = n + 1; i != t; --i) {
+		const std::uint64_t x_head = (static_cast<std::uint64_t>(x.cells[i]) << 32) + x.cells[i - 1];
+
+		std::uint32_t q_hat = 0;
+
+		// Calculate trial quotient q_hat
+		if (x.cells[i] == y.cells[t]) {
+			q_hat = std::numeric_limits<std::uint32_t>::max();
+		}
+		else {
+			q_hat = static_cast<std::uint32_t>(x_head / y.cells[t]);
+		}
+
+		std::uint64_t diff = x_head - static_cast<std::uint64_t>(q_hat) * y.cells[t];
+
+		// Adjust q_hat if too large
+		while ((diff >> 32) == 0
+		    && (diff << 32) + x.cells[i - 2] < static_cast<std::uint64_t>(q_hat) * y.cells[t - 1]) {
+			--q_hat;
+			diff += y.cells[t];
+		}
+
+		std::uint32_t borrow = 0;
+
+		// Multiply and subtract
+		{
+			for (std::size_t j = 0; j <= t; ++j) {
+				std::uint64_t prod = static_cast<std::uint64_t>(q_hat) * y.cells[j];
+				std::uint64_t w = static_cast<std::uint64_t>(x.cells[i - t - 1 + j]) - static_cast<std::uint32_t>(prod) - borrow;
+				x.cells[i - t - 1 + j] = static_cast<std::uint32_t>(w);
+				borrow = static_cast<std::uint32_t>(prod >> 32) - static_cast<std::uint32_t>(w >> 32);
+			}
+
+			std::uint64_t w = static_cast<std::uint64_t>(x.cells[i]) - borrow;
+			x.cells[i] = static_cast<std::uint32_t>(w);
+			borrow = static_cast<std::uint32_t>(w >> 32);
+		}
+
+		// Add back if negative
+		if (borrow) {
+			std::uint32_t carry = 0;
+
+			for (std::size_t j = 0; j <= t; ++j) {
+				std::uint64_t w = static_cast<std::uint64_t>(x.cells[i - t - 1 + j]) + y.cells[j] + carry;
+				x.cells[i - t - 1 + j] = static_cast<std::uint32_t>(w);
+				carry = static_cast<std::uint32_t>(w >> 32);
+			}
+
+			std::uint64_t w = static_cast<std::uint64_t>(x.cells[i]) + carry;
+			x.cells[i] = static_cast<std::uint32_t>(w);
+
+			--q_hat;
+		}
+
+		quot.cells[i - t - 1] = q_hat;
 	}
 
 	*this = quot;
@@ -460,26 +534,97 @@ constexpr wuint<width> &wuint<width>::operator%=(const wuint<width> &rhs)
 		return *this;
 	}
 
-	auto adjust = lhs_bit_size - rhs_bit_size;
+	std::size_t adjust = lhs_bit_size - rhs_bit_size;
 
-	wuint<width> rem(*this);
-	wuint<width> rhs_adjusted = rhs << adjust;
+	if (adjust < 4) {
+		wuint<width> rem(*this);
+		wuint<width> rhs_adjusted = rhs << adjust;
 
-	for (std::size_t bit_i = adjust + 1; bit_i--; ) {
-		auto cmp = rem <=> rhs_adjusted;
+		for (std::size_t bit_i = adjust + 1; bit_i--; ) {
+			auto cmp = rem <=> rhs_adjusted;
 
-		if (cmp >= 0) {
-			rem -= rhs_adjusted;
+			if (cmp >= 0) {
+				rem -= rhs_adjusted;
 
-			if (cmp == 0) {
-				break;
+				if (cmp == 0) {
+					break;
+				}
 			}
+
+			rhs_adjusted >>= 1;
 		}
 
-		rhs_adjusted >>= 1;
+		*this = rem;
+
+		return *this;
 	}
 
-	*this = rem;
+	std::size_t n = (lhs_bit_size - 1) / 32;
+	std::size_t t = (rhs_bit_size - 1) / 32;
+
+	std::size_t shift = static_cast<std::size_t>(std::countl_zero(rhs.cells[t]));
+
+	// Normalize
+	auto x = wuint<width + 1>(*this) << shift;
+	auto y = rhs << shift;
+
+	for (std::size_t i = n + 1; i != t; --i) {
+		const std::uint64_t x_head = (static_cast<std::uint64_t>(x.cells[i]) << 32) + x.cells[i - 1];
+
+		std::uint32_t q_hat = 0;
+
+		// Calculate trial quotient q_hat
+		if (x.cells[i] == y.cells[t]) {
+			q_hat = std::numeric_limits<std::uint32_t>::max();
+		}
+		else {
+			q_hat = static_cast<std::uint32_t>(x_head / y.cells[t]);
+		}
+
+		std::uint64_t diff = x_head - static_cast<std::uint64_t>(q_hat) * y.cells[t];
+
+		// Adjust q_hat if too large
+		while ((diff >> 32) == 0
+		    && (diff << 32) + x.cells[i - 2] < static_cast<std::uint64_t>(q_hat) * y.cells[t - 1]) {
+			--q_hat;
+			diff += y.cells[t];
+		}
+
+		std::uint32_t borrow = 0;
+
+		// Multiply and subtract
+		{
+			for (std::size_t j = 0; j <= t; ++j) {
+				std::uint64_t prod = static_cast<std::uint64_t>(q_hat) * y.cells[j];
+				std::uint64_t w = static_cast<std::uint64_t>(x.cells[i - t - 1 + j]) - static_cast<std::uint32_t>(prod) - borrow;
+				x.cells[i - t - 1 + j] = static_cast<std::uint32_t>(w);
+				borrow = static_cast<std::uint32_t>(prod >> 32) - static_cast<std::uint32_t>(w >> 32);
+			}
+
+			std::uint64_t w = static_cast<std::uint64_t>(x.cells[i]) - borrow;
+			x.cells[i] = static_cast<std::uint32_t>(w);
+			borrow = static_cast<std::uint32_t>(w >> 32);
+		}
+
+		// Add back if negative
+		if (borrow) {
+			std::uint32_t carry = 0;
+
+			for (std::size_t j = 0; j <= t; ++j) {
+				std::uint64_t w = static_cast<std::uint64_t>(x.cells[i - t - 1 + j]) + y.cells[j] + carry;
+				x.cells[i - t - 1 + j] = static_cast<std::uint32_t>(w);
+				carry = static_cast<std::uint32_t>(w >> 32);
+			}
+
+			std::uint64_t w = static_cast<std::uint64_t>(x.cells[i]) + carry;
+			x.cells[i] = static_cast<std::uint32_t>(w);
+
+			--q_hat;
+		}
+	}
+
+	// Unnormalize
+	*this = wuint<width>(x >> shift);
 
 	return *this;
 }
