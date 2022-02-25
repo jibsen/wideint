@@ -1632,6 +1632,34 @@ TEST_CASE("wuint popcount", "[wuint]") {
 	REQUIRE(popcount(wuint64("0xFFFFFFFFFFFFFFFF")) == 64);
 }
 
+TEST_CASE("wuint gcd", "[wuint]") {
+	static constexpr wuint128 x("9223372036854775399");
+	static constexpr wuint128 y("4611686018427387787");
+	static constexpr wuint128 r("2305843009213693613");
+
+	REQUIRE(gcd(wuint64("0"), wuint64("0")) == 0);
+	REQUIRE(gcd(wuint64("0"), wuint64("1")) == 1);
+	REQUIRE(gcd(wuint64("1"), wuint64("0")) == 1);
+	REQUIRE(gcd(wuint64("1"), wuint64("1")) == 1);
+	REQUIRE(gcd(wuint64("48"), wuint64("18")) == 6);
+	REQUIRE(gcd(x, y) == 1);
+	REQUIRE(gcd(x * r, y * r) == r);
+}
+
+TEST_CASE("wuint lcm", "[wuint]") {
+	static constexpr wuint128 x("288230376151711607");
+	static constexpr wuint128 y("144115188075855509");
+
+	REQUIRE(lcm(wuint64("0"), wuint64("0")) == 0);
+	REQUIRE(lcm(wuint64("0"), wuint64("1")) == 0);
+	REQUIRE(lcm(wuint64("1"), wuint64("0")) == 0);
+	REQUIRE(lcm(wuint64("1"), wuint64("1")) == 1);
+	REQUIRE(lcm(wuint64("21"), wuint64("6")) == 42);
+	REQUIRE(lcm(x, x) == x);
+	REQUIRE(lcm(x , y) == x * y);
+	REQUIRE(lcm(2 * 3 * x, 3 * 5 * y) == 2 * 3 * 5 * x * y);
+}
+
 TEST_CASE("std::hash<wuint>", "[wuint]") {
 	REQUIRE(std::hash<wuint32>()(wuint32("123")) == std::hash<wuint32>()(wuint32("123")));
 	REQUIRE(std::hash<wuint64>()(wuint64("123")) == std::hash<wuint64>()(wuint64("123")));
@@ -1666,7 +1694,7 @@ TEST_CASE("wuint modinv", "[wuint]") {
 		"9223372036854775336"
 	);
 
-	constexpr wuint128 n("9223372036854775337");
+	static constexpr wuint128 n("9223372036854775337");
 
 	wuint128 value(str);
 
@@ -1678,8 +1706,8 @@ TEST_CASE("wuint modinv", "[wuint]") {
 }
 
 TEST_CASE("wuint crypt", "[wuint]") {
-	constexpr wuint256 p("9223372036854775337");
-	constexpr wuint256 q("4611686018427387847");
+	static constexpr wuint256 p("9223372036854775337");
+	static constexpr wuint256 q("4611686018427387847");
 
 	wuint256 n = p * q;
 

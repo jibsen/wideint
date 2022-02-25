@@ -1768,7 +1768,7 @@ TEST_CASE("wint modinv", "[wint]") {
 		"9223372036854775336"
 	);
 
-	constexpr wint128 n("9223372036854775337");
+	static constexpr wint128 n("9223372036854775337");
 
 	wint128 value(str);
 
@@ -1780,8 +1780,8 @@ TEST_CASE("wint modinv", "[wint]") {
 }
 
 TEST_CASE("wint crypt", "[wint]") {
-	constexpr wint256 p("9223372036854775337");
-	constexpr wint256 q("4611686018427387847");
+	static constexpr wint256 p("9223372036854775337");
+	static constexpr wint256 q("4611686018427387847");
 
 	wint256 n = p * q;
 

@@ -96,6 +96,7 @@ For both signed and unsigned wideints:
   - specialization of `std::hash`
 
 For unsigned wideints:
+  - `gcd` and `lcm`
   - `has_single_bit`, `bit_ceil`, `bit_floor` `bit_width`, `countl_zero`,
     `countl_one`, `countr_zero`, and `countr_one` analogous to the `<bit>`
     header

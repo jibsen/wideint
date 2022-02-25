@@ -1227,6 +1227,61 @@ constexpr std::size_t popcount(const wuint<width> &x)
 	return count;
 }
 
+// Binary GCD algorithm adapted from Wikipedia
+template<std::size_t width>
+constexpr wuint<width> gcd(const wuint<width> &x, const wuint<width> &y)
+{
+	if (x == 0) {
+		return y;
+	}
+	if (y == 0) {
+		return x;
+	}
+
+	auto a = x;
+	auto b = y;
+
+	std::size_t atz = countr_zero(a);
+	std::size_t btz = countr_zero(b);
+
+	a >>= atz;
+	b >>= btz;
+
+	std::size_t k = std::min(atz, btz);
+
+	for (;;) {
+		auto cmp = a <=> b;
+
+		if (cmp < 0) {
+			b -= a;
+			b >>= countr_zero(b);
+		}
+		else {
+			if (cmp == 0) {
+				break;
+			}
+
+			a -= b;
+			a >>= countr_zero(a);
+		}
+	}
+
+	return b << k;
+}
+
+template<std::size_t width>
+constexpr wuint<width> lcm(const wuint<width> &x, const wuint<width> &y)
+{
+	auto cmp = x <=> y;
+
+	if (cmp == 0) {
+		return x;
+	}
+
+	return cmp < 0 ? (x / gcd(x, y)) * y
+	               : (y / gcd(x, y)) * x;
+}
+
 template<std::size_t width>
 struct wint {
 	static constexpr wint<width> min() {
