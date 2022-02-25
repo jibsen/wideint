@@ -994,6 +994,18 @@ constexpr wuint<width> abs(const wuint<width> &obj)
 }
 
 template<std::size_t width>
+constexpr wuint<width> min(const wuint<width> &lhs, const wuint<width> &rhs)
+{
+	return rhs < lhs ? rhs : lhs;
+}
+
+template<std::size_t width>
+constexpr wuint<width> max(const wuint<width> &lhs, const wuint<width> &rhs)
+{
+	return rhs < lhs ? lhs : rhs;
+}
+
+template<std::size_t width>
 std::string to_string(const wuint<width> &obj)
 {
 	if (obj.is_zero()) {
@@ -1959,6 +1971,18 @@ template<std::size_t width>
 constexpr wint<width> abs(const wint<width> &obj)
 {
 	return obj.is_negative() ? -obj : obj;
+}
+
+template<std::size_t width>
+constexpr wint<width> min(const wint<width> &lhs, const wint<width> &rhs)
+{
+	return rhs < lhs ? rhs : lhs;
+}
+
+template<std::size_t width>
+constexpr wint<width> max(const wint<width> &lhs, const wint<width> &rhs)
+{
+	return rhs < lhs ? lhs : rhs;
 }
 
 template<std::size_t width>

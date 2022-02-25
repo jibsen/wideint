@@ -1456,9 +1456,35 @@ TEST_CASE("wuint abs", "[wuint]") {
 	REQUIRE(abs(wuint96("0")) == wuint96("0"));
 	REQUIRE(abs(wuint96("1")) == wuint96("1"));
 	REQUIRE(abs(wuint96("-1")) == wuint96("-1"));
-	REQUIRE(abs(wuint96("0x7FFFFFFFFFFFFFFFFFFFFFFF")) == wuint96("0x7FFFFFFFFFFFFFFFFFFFFFFF"));
-	REQUIRE(abs(wuint96("0x800000000000000000000000")) == wuint96("0x800000000000000000000000"));
-	REQUIRE(abs(wuint96("0x800000000000000000000001")) == wuint96("0x800000000000000000000001"));
+	REQUIRE(abs(wuint96_7F) == wuint96_7F);
+	REQUIRE(abs(wuint96_80) == wuint96_80);
+	REQUIRE(abs(wuint96_81) == wuint96_81);
+}
+
+TEST_CASE("wuint min", "[wuint]") {
+	REQUIRE(min(wuint96("0"), wuint96("0")) == wuint96("0"));
+	REQUIRE(min(wuint96("1"), wuint96("0")) == wuint96("0"));
+	REQUIRE(min(wuint96("0"), wuint96("1")) == wuint96("0"));
+	REQUIRE(min(wuint96("0"), wuint96("-1")) == wuint96("0"));
+	REQUIRE(min(wuint96("-1"), wuint96("-2")) == wuint96("-2"));
+	REQUIRE(min(wuint96("0x1000000000000"), wuint96("0xFFFFFFFFFFFF")) == wuint96("0xFFFFFFFFFFFF"));
+	REQUIRE(min(wuint96("0x1000000000000"), wuint96("0x1000000000001")) == wuint96("0x1000000000000"));
+	REQUIRE(min(wuint96_7F, wuint96_80) == wuint96_7F);
+	REQUIRE(min(wuint96_80, wuint96_81) == wuint96_80);
+	REQUIRE(min(wuint96_81, wuint96_FF) == wuint96_81);
+}
+
+TEST_CASE("wuint max", "[wuint]") {
+	REQUIRE(max(wuint96("0"), wuint96("0")) == wuint96("0"));
+	REQUIRE(max(wuint96("1"), wuint96("0")) == wuint96("1"));
+	REQUIRE(max(wuint96("0"), wuint96("1")) == wuint96("1"));
+	REQUIRE(max(wuint96("0"), wuint96("-1")) == wuint96("-1"));
+	REQUIRE(max(wuint96("-1"), wuint96("-2")) == wuint96("-1"));
+	REQUIRE(max(wuint96("0x1000000000000"), wuint96("0xFFFFFFFFFFFF")) == wuint96("0x1000000000000"));
+	REQUIRE(max(wuint96("0x1000000000000"), wuint96("0x1000000000001")) == wuint96("0x1000000000001"));
+	REQUIRE(max(wuint96_7F, wuint96_80) == wuint96_80);
+	REQUIRE(max(wuint96_80, wuint96_81) == wuint96_81);
+	REQUIRE(max(wuint96_81, wuint96_FF) == wuint96_FF);
 }
 
 TEST_CASE("wuint to_string", "[wuint]") {
