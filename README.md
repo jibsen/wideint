@@ -133,6 +133,8 @@ these by defining `WIDEINT_NO_IOSTREAMS`.
 Alternatives
 ------------
 
+  - [Abseil Numerics](https://abseil.io/docs/cpp/guides/numeric)
+  - [Boost.Multiprecision](https://www.boost.org/doc/libs/release/libs/multiprecision/)
   - [GMP](https://gmplib.org/)
   - [InfInt](https://github.com/sercantutar/infint)
   - [mp++](https://github.com/bluescarni/mppp)
