@@ -116,7 +116,7 @@ it stores as a two's complement representation.
 using wideint::wint;
 
 template<std::size_t width>
-constexpr wint<width> gcd(const wint<width> &x, const wint<width> &y)
+constexpr wint<width> gcd_euclid(const wint<width> &x, const wint<width> &y)
 {
 	auto a = x;
 	auto b = y;
@@ -136,7 +136,7 @@ int main() {
 	constexpr auto r = int128("2305843009213693907");
 
 	// prints 2305843009213693907
-	std::cout << gcd(p * r, q * r) << '\n';
+	std::cout << gcd_euclid(p * r, q * r) << '\n';
 }
 ~~~
 
