@@ -82,6 +82,25 @@ As special cases, modulus (`wuint % uint32_t`) and bitwise AND
 Most operations are `constexpr`.
 
 
+Functionality
+-------------
+
+Besides the usual arithmetic and comparison operators, the following is
+available.
+
+For both signed and unsigned wideints:
+  - `is_zero` and `is_negative` member functions
+  - `getbit` and `setbit` member functions
+  - `abs`, `min`, and `max`
+  - `to_string`
+  - specialization of `std::hash`
+
+For unsigned wideints:
+  - `has_single_bit`, `bit_ceil`, `bit_floor` `bit_width`, `countl_zero`,
+    `countl_one`, `countr_zero`, and `countr_one` analogous to the `<bit>`
+    header
+
+
 Signed values
 -------------
 
