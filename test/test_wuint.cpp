@@ -36,6 +36,25 @@ using wuint96 = wuint<3>;
 using wuint128 = wuint<4>;
 using wuint256 = wuint<8>;
 
+static constexpr auto wuint32_7F = wuint32::max() / wuint32(2);
+static constexpr auto wuint64_7F = wuint64::max() / wuint64(2);
+static constexpr auto wuint96_7F = wuint96::max() / wuint96(2);
+static constexpr auto wuint32_80 = wuint32_7F + wuint32(1);
+static constexpr auto wuint64_80 = wuint64_7F + wuint64(1);
+static constexpr auto wuint96_80 = wuint96_7F + wuint96(1);
+static constexpr auto wuint32_81 = wuint32_80 + wuint32(1);
+static constexpr auto wuint64_81 = wuint64_80 + wuint64(1);
+static constexpr auto wuint96_81 = wuint96_80 + wuint96(1);
+static constexpr auto wuint32_FF = wuint32::max();
+static constexpr auto wuint64_FF = wuint64::max();
+static constexpr auto wuint96_FF = wuint96::max();
+
+constexpr std::uint32_t uint32_80 = std::numeric_limits<std::int32_t>::min();
+constexpr std::uint32_t uint32_81 = -std::numeric_limits<std::int32_t>::max();
+constexpr std::uint32_t uint32_FF = -1;
+constexpr std::uint32_t uint32_01 = 1;
+constexpr std::uint32_t uint32_7F = std::numeric_limits<std::int32_t>::max();
+
 constexpr wuint256 fac(std::uint32_t n)
 {
 	wuint256 res(n);
@@ -481,19 +500,6 @@ TEST_CASE("wuint wuint divide", "[wuint]") {
 }
 
 TEST_CASE("wuint wuint divide limits", "[wuint]") {
-	constexpr auto wuint32_7F = wuint32::max() / wuint32("2");
-	constexpr auto wuint64_7F = wuint64::max() / wuint64("2");
-	constexpr auto wuint96_7F = wuint96::max() / wuint96("2");
-	constexpr auto wuint32_80 = wuint32_7F + wuint32("1");
-	constexpr auto wuint64_80 = wuint64_7F + wuint64("1");
-	constexpr auto wuint96_80 = wuint96_7F + wuint96("1");
-	constexpr auto wuint32_81 = wuint32_80 + wuint32("1");
-	constexpr auto wuint64_81 = wuint64_80 + wuint64("1");
-	constexpr auto wuint96_81 = wuint96_80 + wuint96("1");
-	constexpr auto wuint32_FF = wuint32::max();
-	constexpr auto wuint64_FF = wuint64::max();
-	constexpr auto wuint96_FF = wuint96::max();
-
 	// 7F / 7F
 	REQUIRE(wuint32_7F / wuint32_7F == wuint32("1"));
 	REQUIRE(wuint64_7F / wuint64_7F == wuint64("1"));
@@ -612,19 +618,6 @@ TEST_CASE("wuint wuint modulus", "[wuint]") {
 }
 
 TEST_CASE("wuint wuint modulus limits", "[wuint]") {
-	constexpr auto wuint32_7F = wuint32::max() / wuint32("2");
-	constexpr auto wuint64_7F = wuint64::max() / wuint64("2");
-	constexpr auto wuint96_7F = wuint96::max() / wuint96("2");
-	constexpr auto wuint32_80 = wuint32_7F + wuint32("1");
-	constexpr auto wuint64_80 = wuint64_7F + wuint64("1");
-	constexpr auto wuint96_80 = wuint96_7F + wuint96("1");
-	constexpr auto wuint32_81 = wuint32_80 + wuint32("1");
-	constexpr auto wuint64_81 = wuint64_80 + wuint64("1");
-	constexpr auto wuint96_81 = wuint96_80 + wuint96("1");
-	constexpr auto wuint32_FF = wuint32::max();
-	constexpr auto wuint64_FF = wuint64::max();
-	constexpr auto wuint96_FF = wuint96::max();
-
 	// 7F % 7F
 	REQUIRE(wuint32_7F % wuint32_7F == wuint32("0"));
 	REQUIRE(wuint64_7F % wuint64_7F == wuint64("0"));
@@ -909,25 +902,6 @@ TEST_CASE("wuint uint32 divide", "[wuint]") {
 }
 
 TEST_CASE("wuint uint32 divide limits", "[wuint]") {
-	constexpr auto wuint32_7F = wuint32::max() / wuint32("2");
-	constexpr auto wuint64_7F = wuint64::max() / wuint64("2");
-	constexpr auto wuint96_7F = wuint96::max() / wuint96("2");
-	constexpr auto wuint32_80 = wuint32_7F + wuint32("1");
-	constexpr auto wuint64_80 = wuint64_7F + wuint64("1");
-	constexpr auto wuint96_80 = wuint96_7F + wuint96("1");
-	constexpr auto wuint32_81 = wuint32_80 + wuint32("1");
-	constexpr auto wuint64_81 = wuint64_80 + wuint64("1");
-	constexpr auto wuint96_81 = wuint96_80 + wuint96("1");
-	constexpr auto wuint32_FF = wuint32::max();
-	constexpr auto wuint64_FF = wuint64::max();
-	constexpr auto wuint96_FF = wuint96::max();
-
-	std::uint32_t uint32_80 = std::numeric_limits<std::int32_t>::min();
-	std::uint32_t uint32_81 = -std::numeric_limits<std::int32_t>::max();
-	std::uint32_t uint32_FF = -1;
-	std::uint32_t uint32_01 = 1;
-	std::uint32_t uint32_7F = std::numeric_limits<std::int32_t>::max();
-
 	// 01 / 01
 	REQUIRE(wuint32("1") / uint32_01 == wuint32("1"));
 	REQUIRE(wuint64("1") / uint32_01 == wuint64("1"));
@@ -1055,25 +1029,6 @@ TEST_CASE("wuint uint32 divide limits", "[wuint]") {
 }
 
 TEST_CASE("uint32 wuint divide limits", "[wuint]") {
-	constexpr auto wuint32_7F = wuint32::max() / wuint32("2");
-	constexpr auto wuint64_7F = wuint64::max() / wuint64("2");
-	constexpr auto wuint96_7F = wuint96::max() / wuint96("2");
-	constexpr auto wuint32_80 = wuint32_7F + wuint32("1");
-	constexpr auto wuint64_80 = wuint64_7F + wuint64("1");
-	constexpr auto wuint96_80 = wuint96_7F + wuint96("1");
-	constexpr auto wuint32_81 = wuint32_80 + wuint32("1");
-	constexpr auto wuint64_81 = wuint64_80 + wuint64("1");
-	constexpr auto wuint96_81 = wuint96_80 + wuint96("1");
-	constexpr auto wuint32_FF = wuint32::max();
-	constexpr auto wuint64_FF = wuint64::max();
-	constexpr auto wuint96_FF = wuint96::max();
-
-	std::uint32_t uint32_80 = std::numeric_limits<std::int32_t>::min();
-	std::uint32_t uint32_81 = -std::numeric_limits<std::int32_t>::max();
-	std::uint32_t uint32_FF = -1;
-	std::uint32_t uint32_01 = 1;
-	std::uint32_t uint32_7F = std::numeric_limits<std::int32_t>::max();
-
 	// 01 / 01
 	REQUIRE(uint32_01 / wuint32("1") == wuint32("1"));
 	REQUIRE(uint32_01 / wuint64("1") == wuint64("1"));
@@ -1179,25 +1134,6 @@ TEST_CASE("wuint uint32 modulus", "[wuint]") {
 }
 
 TEST_CASE("wuint uint32 modulus limits", "[wuint]") {
-	constexpr auto wuint32_7F = wuint32::max() / wuint32("2");
-	constexpr auto wuint64_7F = wuint64::max() / wuint64("2");
-	constexpr auto wuint96_7F = wuint96::max() / wuint96("2");
-	constexpr auto wuint32_80 = wuint32_7F + wuint32("1");
-	constexpr auto wuint64_80 = wuint64_7F + wuint64("1");
-	constexpr auto wuint96_80 = wuint96_7F + wuint96("1");
-	constexpr auto wuint32_81 = wuint32_80 + wuint32("1");
-	constexpr auto wuint64_81 = wuint64_80 + wuint64("1");
-	constexpr auto wuint96_81 = wuint96_80 + wuint96("1");
-	constexpr auto wuint32_FF = wuint32::max();
-	constexpr auto wuint64_FF = wuint64::max();
-	constexpr auto wuint96_FF = wuint96::max();
-
-	std::uint32_t uint32_80 = std::numeric_limits<std::int32_t>::min();
-	std::uint32_t uint32_81 = -std::numeric_limits<std::int32_t>::max();
-	std::uint32_t uint32_FF = -1;
-	std::uint32_t uint32_01 = 1;
-	std::uint32_t uint32_7F = std::numeric_limits<std::int32_t>::max();
-
 	// 01 % 01
 	REQUIRE(wuint32("1") % uint32_01 == wuint32("0"));
 	REQUIRE(wuint64("1") % uint32_01 == wuint64("0"));
@@ -1325,25 +1261,6 @@ TEST_CASE("wuint uint32 modulus limits", "[wuint]") {
 }
 
 TEST_CASE("uint32 wuint modulus limits", "[wuint]") {
-	constexpr auto wuint32_7F = wuint32::max() / wuint32("2");
-	constexpr auto wuint64_7F = wuint64::max() / wuint64("2");
-	constexpr auto wuint96_7F = wuint96::max() / wuint96("2");
-	constexpr auto wuint32_80 = wuint32_7F + wuint32("1");
-	constexpr auto wuint64_80 = wuint64_7F + wuint64("1");
-	constexpr auto wuint96_80 = wuint96_7F + wuint96("1");
-	constexpr auto wuint32_81 = wuint32_80 + wuint32("1");
-	constexpr auto wuint64_81 = wuint64_80 + wuint64("1");
-	constexpr auto wuint96_81 = wuint96_80 + wuint96("1");
-	constexpr auto wuint32_FF = wuint32::max();
-	constexpr auto wuint64_FF = wuint64::max();
-	constexpr auto wuint96_FF = wuint96::max();
-
-	std::uint32_t uint32_80 = std::numeric_limits<std::int32_t>::min();
-	std::uint32_t uint32_81 = -std::numeric_limits<std::int32_t>::max();
-	std::uint32_t uint32_FF = -1;
-	std::uint32_t uint32_01 = 1;
-	std::uint32_t uint32_7F = std::numeric_limits<std::int32_t>::max();
-
 	// 01 % 01
 	REQUIRE(uint32_01 % wuint32("1") == wuint32("0"));
 	REQUIRE(uint32_01 % wuint64("1") == wuint64("0"));

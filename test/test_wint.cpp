@@ -35,6 +35,28 @@ using wint96 = wint<3>;
 using wint128 = wint<4>;
 using wint256 = wint<8>;
 
+static constexpr auto wint32_80 = wint32::min();
+static constexpr auto wint64_80 = wint64::min();
+static constexpr auto wint96_80 = wint96::min();
+static constexpr auto wint32_81 = -wint32::max();
+static constexpr auto wint64_81 = -wint64::max();
+static constexpr auto wint96_81 = -wint96::max();
+static constexpr auto wint32_FF = wint32(-1);
+static constexpr auto wint64_FF = wint64(-1);
+static constexpr auto wint96_FF = wint96(-1);
+static constexpr auto wint32_01 = wint32(1);
+static constexpr auto wint64_01 = wint64(1);
+static constexpr auto wint96_01 = wint96(1);
+static constexpr auto wint32_7F = wint32::max();
+static constexpr auto wint64_7F = wint64::max();
+static constexpr auto wint96_7F = wint96::max();
+
+constexpr std::int32_t int32_80 = std::numeric_limits<std::int32_t>::min();
+constexpr std::int32_t int32_81 = -std::numeric_limits<std::int32_t>::max();
+constexpr std::int32_t int32_FF = -1;
+constexpr std::int32_t int32_01 = 1;
+constexpr std::int32_t int32_7F = std::numeric_limits<std::int32_t>::max();
+
 constexpr wint256 fac(std::int32_t n)
 {
 	wint256 res(n);
@@ -515,22 +537,6 @@ TEST_CASE("wint wint divide", "[wint]") {
 }
 
 TEST_CASE("wint wint divide limits", "[wint]") {
-	constexpr auto wint32_80 = wint32::min();
-	constexpr auto wint64_80 = wint64::min();
-	constexpr auto wint96_80 = wint96::min();
-	constexpr auto wint32_81 = -wint32::max();
-	constexpr auto wint64_81 = -wint64::max();
-	constexpr auto wint96_81 = -wint96::max();
-	constexpr auto wint32_FF = wint32("-1");
-	constexpr auto wint64_FF = wint64("-1");
-	constexpr auto wint96_FF = wint96("-1");
-	constexpr auto wint32_01 = wint32("1");
-	constexpr auto wint64_01 = wint64("1");
-	constexpr auto wint96_01 = wint96("1");
-	constexpr auto wint32_7F = wint32::max();
-	constexpr auto wint64_7F = wint64::max();
-	constexpr auto wint96_7F = wint96::max();
-
 	// 80 / 80
 	REQUIRE(wint32_80 / wint32_80 == wint32("1"));
 	REQUIRE(wint64_80 / wint64_80 == wint64("1"));
@@ -671,22 +677,6 @@ TEST_CASE("wint wint modulus", "[wint]") {
 }
 
 TEST_CASE("wint wint modulus limits", "[wint]") {
-	constexpr auto wint32_80 = wint32::min();
-	constexpr auto wint64_80 = wint64::min();
-	constexpr auto wint96_80 = wint96::min();
-	constexpr auto wint32_81 = -wint32::max();
-	constexpr auto wint64_81 = -wint64::max();
-	constexpr auto wint96_81 = -wint96::max();
-	constexpr auto wint32_FF = wint32("-1");
-	constexpr auto wint64_FF = wint64("-1");
-	constexpr auto wint96_FF = wint96("-1");
-	constexpr auto wint32_01 = wint32("1");
-	constexpr auto wint64_01 = wint64("1");
-	constexpr auto wint96_01 = wint96("1");
-	constexpr auto wint32_7F = wint32::max();
-	constexpr auto wint64_7F = wint64::max();
-	constexpr auto wint96_7F = wint96::max();
-
 	// 80 % 80
 	REQUIRE(wint32_80 % wint32_80 == wint32("0"));
 	REQUIRE(wint64_80 % wint64_80 == wint64("0"));
@@ -1007,28 +997,6 @@ TEST_CASE("wint int32 divide", "[wint]") {
 }
 
 TEST_CASE("wint int32 divide limits", "[wint]") {
-	constexpr auto wint32_80 = wint32::min();
-	constexpr auto wint64_80 = wint64::min();
-	constexpr auto wint96_80 = wint96::min();
-	constexpr auto wint32_81 = -wint32::max();
-	constexpr auto wint64_81 = -wint64::max();
-	constexpr auto wint96_81 = -wint96::max();
-	constexpr auto wint32_FF = wint32("-1");
-	constexpr auto wint64_FF = wint64("-1");
-	constexpr auto wint96_FF = wint96("-1");
-	constexpr auto wint32_01 = wint32("1");
-	constexpr auto wint64_01 = wint64("1");
-	constexpr auto wint96_01 = wint96("1");
-	constexpr auto wint32_7F = wint32::max();
-	constexpr auto wint64_7F = wint64::max();
-	constexpr auto wint96_7F = wint96::max();
-
-	std::int32_t int32_80 = std::numeric_limits<std::int32_t>::min();
-	std::int32_t int32_81 = -std::numeric_limits<std::int32_t>::max();
-	std::int32_t int32_FF = -1;
-	std::int32_t int32_01 = 1;
-	std::int32_t int32_7F = std::numeric_limits<std::int32_t>::max();
-
 	// 80 / 80
 	REQUIRE(wint32_80 / int32_80 == wint32("1"));
 	REQUIRE(wint64_80 / int32_80 == wint64("0x100000000"));
@@ -1153,28 +1121,6 @@ TEST_CASE("wint int32 divide limits", "[wint]") {
 }
 
 TEST_CASE("int32 wint divide limits", "[wint]") {
-	constexpr auto wint32_80 = wint32::min();
-	constexpr auto wint64_80 = wint64::min();
-	constexpr auto wint96_80 = wint96::min();
-	constexpr auto wint32_81 = -wint32::max();
-	constexpr auto wint64_81 = -wint64::max();
-	constexpr auto wint96_81 = -wint96::max();
-	constexpr auto wint32_FF = wint32("-1");
-	constexpr auto wint64_FF = wint64("-1");
-	constexpr auto wint96_FF = wint96("-1");
-	constexpr auto wint32_01 = wint32("1");
-	constexpr auto wint64_01 = wint64("1");
-	constexpr auto wint96_01 = wint96("1");
-	constexpr auto wint32_7F = wint32::max();
-	constexpr auto wint64_7F = wint64::max();
-	constexpr auto wint96_7F = wint96::max();
-
-	std::int32_t int32_80 = std::numeric_limits<std::int32_t>::min();
-	std::int32_t int32_81 = -std::numeric_limits<std::int32_t>::max();
-	std::int32_t int32_FF = -1;
-	std::int32_t int32_01 = 1;
-	std::int32_t int32_7F = std::numeric_limits<std::int32_t>::max();
-
 	// 80 / 80
 	REQUIRE(int32_80 / wint32_80 == wint32("1"));
 
@@ -1331,28 +1277,6 @@ TEST_CASE("wint int32 modulus", "[wint]") {
 }
 
 TEST_CASE("wint int32 modulus limits", "[wint]") {
-	constexpr auto wint32_80 = wint32::min();
-	constexpr auto wint64_80 = wint64::min();
-	constexpr auto wint96_80 = wint96::min();
-	constexpr auto wint32_81 = -wint32::max();
-	constexpr auto wint64_81 = -wint64::max();
-	constexpr auto wint96_81 = -wint96::max();
-	constexpr auto wint32_FF = wint32("-1");
-	constexpr auto wint64_FF = wint64("-1");
-	constexpr auto wint96_FF = wint96("-1");
-	constexpr auto wint32_01 = wint32("1");
-	constexpr auto wint64_01 = wint64("1");
-	constexpr auto wint96_01 = wint96("1");
-	constexpr auto wint32_7F = wint32::max();
-	constexpr auto wint64_7F = wint64::max();
-	constexpr auto wint96_7F = wint96::max();
-
-	std::int32_t int32_80 = std::numeric_limits<std::int32_t>::min();
-	std::int32_t int32_81 = -std::numeric_limits<std::int32_t>::max();
-	std::int32_t int32_FF = -1;
-	std::int32_t int32_01 = 1;
-	std::int32_t int32_7F = std::numeric_limits<std::int32_t>::max();
-
 	// 80 % 80
 	REQUIRE(wint32_80 % int32_80 == wint32("0"));
 	REQUIRE(wint64_80 % int32_80 == wint64("0"));
@@ -1477,28 +1401,6 @@ TEST_CASE("wint int32 modulus limits", "[wint]") {
 }
 
 TEST_CASE("int32 wint modulus limits", "[wint]") {
-	constexpr auto wint32_80 = wint32::min();
-	constexpr auto wint64_80 = wint64::min();
-	constexpr auto wint96_80 = wint96::min();
-	constexpr auto wint32_81 = -wint32::max();
-	constexpr auto wint64_81 = -wint64::max();
-	constexpr auto wint96_81 = -wint96::max();
-	constexpr auto wint32_FF = wint32("-1");
-	constexpr auto wint64_FF = wint64("-1");
-	constexpr auto wint96_FF = wint96("-1");
-	constexpr auto wint32_01 = wint32("1");
-	constexpr auto wint64_01 = wint64("1");
-	constexpr auto wint96_01 = wint96("1");
-	constexpr auto wint32_7F = wint32::max();
-	constexpr auto wint64_7F = wint64::max();
-	constexpr auto wint96_7F = wint96::max();
-
-	std::int32_t int32_80 = std::numeric_limits<std::int32_t>::min();
-	std::int32_t int32_81 = -std::numeric_limits<std::int32_t>::max();
-	std::int32_t int32_FF = -1;
-	std::int32_t int32_01 = 1;
-	std::int32_t int32_7F = std::numeric_limits<std::int32_t>::max();
-
 	// 80 % 80
 	REQUIRE(int32_80 % wint32_80 == wint32("0"));
 
