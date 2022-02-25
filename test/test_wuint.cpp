@@ -1660,6 +1660,21 @@ TEST_CASE("wuint lcm", "[wuint]") {
 	REQUIRE(lcm(2 * 3 * x, 3 * 5 * y) == 2 * 3 * 5 * x * y);
 }
 
+TEST_CASE("wuint sqrt", "[wuint]") {
+	static constexpr wuint128 x("576460752303422881");
+
+	REQUIRE(sqrt(wuint64(0)) == 0);
+	REQUIRE(sqrt(wuint64(1)) == 1);
+	REQUIRE(sqrt(wuint64(2)) == 1);
+	REQUIRE(sqrt(wuint64(3)) == 1);
+	REQUIRE(sqrt(wuint64(4)) == 2);
+	REQUIRE(sqrt(wuint64(8)) == 2);
+	REQUIRE(sqrt(wuint64(9)) == 3);
+	REQUIRE(sqrt(x * x) == x);
+	REQUIRE(sqrt(x * x + 1) == x);
+	REQUIRE(sqrt(x * x - 1) == x - 1);
+}
+
 TEST_CASE("std::hash<wuint>", "[wuint]") {
 	REQUIRE(std::hash<wuint32>()(wuint32("123")) == std::hash<wuint32>()(wuint32("123")));
 	REQUIRE(std::hash<wuint64>()(wuint64("123")) == std::hash<wuint64>()(wuint64("123")));

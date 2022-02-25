@@ -1282,6 +1282,31 @@ constexpr wuint<width> lcm(const wuint<width> &x, const wuint<width> &y)
 	               : (y / gcd(x, y)) * x;
 }
 
+// Heron's method based on Wikipedia implementation
+template<std::size_t width>
+constexpr wuint<width> sqrt(const wuint<width> &x)
+{
+	std::size_t bit_size = bit_width(x);
+
+	if (bit_size < 2) {
+		return x;
+	}
+
+	auto r = wuint<width>(0).setbit((bit_size + 1) / 2);
+
+	for (;;) {
+		auto new_r = (r + x / r) >> 1;
+
+		if (new_r >= r) {
+			break;
+		}
+
+		r = new_r;
+	}
+
+	return r;
+}
+
 template<std::size_t width>
 struct wint {
 	static constexpr wint<width> min() {
