@@ -140,16 +140,6 @@ struct wuint {
 
 	[[nodiscard]] constexpr bool is_negative() const { return false; }
 
-	[[nodiscard]] constexpr std::size_t log2() const {
-		for (std::size_t i = width; i--; ) {
-			if (cells[i]) {
-				return std::bit_width(cells[i]) + 32 * i;
-			}
-		}
-
-		return 0;
-	}
-
 	[[nodiscard]] constexpr std::uint32_t getbit(std::size_t bit) const {
 		std::size_t pos = bit / 32;
 		std::size_t offs = bit % 32;
@@ -358,8 +348,8 @@ constexpr wuint<width> operator*(const wuint<width> &lhs, const wuint<width> &rh
 template<std::size_t width>
 constexpr wuint<width> &wuint<width>::operator/=(const wuint<width> &rhs)
 {
-	auto lhs_bit_size = log2();
-	auto rhs_bit_size = rhs.log2();
+	auto lhs_bit_size = bit_width(*this);
+	auto rhs_bit_size = bit_width(rhs);
 
 	if (lhs_bit_size < rhs_bit_size) {
 		cells.fill(0);
@@ -507,8 +497,8 @@ constexpr wuint<width> operator/(const wuint<width> &lhs, const wuint<width> &rh
 template<std::size_t width>
 constexpr wuint<width> &wuint<width>::operator%=(const wuint<width> &rhs)
 {
-	auto lhs_bit_size = log2();
-	auto rhs_bit_size = rhs.log2();
+	auto lhs_bit_size = bit_width(*this);
+	auto rhs_bit_size = bit_width(rhs);
 
 	if (lhs_bit_size < rhs_bit_size) {
 		return *this;
@@ -1164,7 +1154,13 @@ constexpr wuint<width> bit_floor(const wuint<width> &x)
 template<std::size_t width>
 constexpr std::size_t bit_width(const wuint<width> &x)
 {
-	return x.log2();
+	for (std::size_t i = width; i--; ) {
+		if (x.cells[i]) {
+			return std::bit_width(x.cells[i]) + 32 * i;
+		}
+	}
+
+	return 0;
 }
 
 template<std::size_t width>
@@ -1322,16 +1318,6 @@ struct wint {
 
 	[[nodiscard]] constexpr bool is_negative() const {
 		return cells.back() & (std::uint32_t(1) << 31);
-	}
-
-	[[nodiscard]] constexpr std::size_t log2() const {
-		for (std::size_t i = width; i--; ) {
-			if (cells[i]) {
-				return std::bit_width(cells[i]) + 32 * i;
-			}
-		}
-
-		return 0;
 	}
 
 	[[nodiscard]] constexpr std::uint32_t getbit(std::size_t bit) const {

@@ -27,6 +27,7 @@
 
 #include "catch.hpp"
 
+using wideint::wuint;
 using wideint::wint;
 
 using wint32 = wint<1>;
@@ -100,7 +101,7 @@ constexpr wint<width> modexp(const wint<width> &a, const wint<width> &x, const w
 	const wint<width> base(a % n);
 	wint<width> res(1);
 
-	for (std::size_t bit_i = x.log2(); bit_i--; ) {
+	for (std::size_t bit_i = bit_width(wuint<width>(x)); bit_i--; ) {
 		res = (res * res) % n;
 
 		if (x.getbit(bit_i)) {
@@ -1604,15 +1605,6 @@ TEST_CASE("wint is_negative", "[wint]") {
 	REQUIRE(wint32("0x80000000").is_negative());
 	REQUIRE(wint64("0x8000000000000000").is_negative());
 	REQUIRE(wint96("0x800000000000000000000000").is_negative());
-}
-
-TEST_CASE("wint log2", "[wint]") {
-	REQUIRE(wint96("0").log2() == 0);
-	REQUIRE(wint96("1").log2() == 1);
-	REQUIRE(wint96("2").log2() == 2);
-	REQUIRE(wint96("3").log2() == 2);
-	REQUIRE(wint96("0x800000000000").log2() == 48);
-	REQUIRE(wint96("-1").log2() == 96);
 }
 
 TEST_CASE("wint getbit", "[wint]") {

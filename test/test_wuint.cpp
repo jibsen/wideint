@@ -98,7 +98,7 @@ constexpr wuint<width> modexp(const wuint<width> &a, const wuint<width> &x, cons
 	const wuint<width> base(a % n);
 	wuint<width> res(1);
 
-	for (std::size_t bit_i = x.log2(); bit_i--; ) {
+	for (std::size_t bit_i = bit_width(x); bit_i--; ) {
 		res = (res * res) % n;
 
 		if (x.getbit(bit_i)) {
@@ -1419,15 +1419,6 @@ TEST_CASE("wuint is_negative", "[wuint]") {
 	REQUIRE(!wuint96("0x800000000000000000000000").is_negative());
 }
 
-TEST_CASE("wuint log2", "[wuint]") {
-	REQUIRE(wuint96("0").log2() == 0);
-	REQUIRE(wuint96("1").log2() == 1);
-	REQUIRE(wuint96("2").log2() == 2);
-	REQUIRE(wuint96("3").log2() == 2);
-	REQUIRE(wuint96("0x800000000000").log2() == 48);
-	REQUIRE(wuint96("-1").log2() == 96);
-}
-
 TEST_CASE("wuint getbit", "[wuint]") {
 	REQUIRE(wuint96("0").getbit(0) == 0);
 	REQUIRE(wuint96("1").getbit(0) == 1);
@@ -1561,6 +1552,18 @@ TEST_CASE("wuint bit_floor", "[wuint]") {
 	REQUIRE(bit_floor(wuint64("0x8000000000000000")) == wuint64("0x8000000000000000"));
 	REQUIRE(bit_floor(wuint64("0x8FFFFFFFFFFFFFFF")) == wuint64("0x8000000000000000"));
 	REQUIRE(bit_floor(wuint64("0xFFFFFFFFFFFFFFFF")) == wuint64("0x8000000000000000"));
+}
+
+TEST_CASE("wuint bit_width", "[wuint]") {
+	REQUIRE(bit_width(wuint96("0")) == 0);
+	REQUIRE(bit_width(wuint96("1")) == 1);
+	REQUIRE(bit_width(wuint96("2")) == 2);
+	REQUIRE(bit_width(wuint96("3")) == 2);
+	REQUIRE(bit_width(wuint96("0x800000000000")) == 48);
+	REQUIRE(bit_width(wuint96_7F) == 95);
+	REQUIRE(bit_width(wuint96_80) == 96);
+	REQUIRE(bit_width(wuint96_81) == 96);
+	REQUIRE(bit_width(wuint96_FF) == 96);
 }
 
 TEST_CASE("wuint countl_zero", "[wuint]") {
