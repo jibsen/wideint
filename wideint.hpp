@@ -1230,20 +1230,11 @@ constexpr std::to_chars_result to_chars(char *first, char *last, const wuint<wid
 template<std::size_t width>
 std::string to_string(const wuint<width> &obj)
 {
-	if (obj.is_zero()) {
-		return "0";
-	}
+	std::array<char, width * (std::numeric_limits<std::uint32_t>::digits10 + 1)> buffer;
 
-	std::string res;
+	auto [ptr, ec] = to_chars(buffer.data(), buffer.data() + buffer.size(), obj, 10);
 
-	for (wuint<width> tmp = obj; !tmp.is_zero(); tmp /= 10) {
-		std::uint32_t digit = tmp % 10;
-		res.push_back(static_cast<char>('0' + digit));
-	}
-
-	std::reverse(res.begin(), res.end());
-
-	return res;
+	return std::string(buffer.data(), ptr);
 }
 
 template<typename T>
@@ -2334,24 +2325,11 @@ constexpr std::to_chars_result to_chars(char *first, char *last, const wint<widt
 template<std::size_t width>
 std::string to_string(const wint<width> &obj)
 {
-	if (obj.is_zero()) {
-		return "0";
-	}
+	std::array<char, width * (std::numeric_limits<std::uint32_t>::digits10 + 1)> buffer;
 
-	std::string res;
+	auto [ptr, ec] = to_chars(buffer.data(), buffer.data() + buffer.size(), obj, 10);
 
-	for (wuint<width> tmp(abs(obj)); !tmp.is_zero(); tmp /= 10) {
-		std::uint32_t digit = tmp % 10;
-		res.push_back(static_cast<char>('0' + digit));
-	}
-
-	if (obj.is_negative()) {
-		res.push_back('-');
-	}
-
-	std::reverse(res.begin(), res.end());
-
-	return res;
+	return std::string(buffer.data(), ptr);
 }
 
 template<std::size_t width>
