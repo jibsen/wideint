@@ -1237,10 +1237,18 @@ std::string to_string(const wuint<width> &obj)
 	return std::string(buffer.data(), ptr);
 }
 
-template<typename T>
-constexpr T from_string(std::string_view sv)
+template<std::size_t width>
+constexpr wuint<width>::wuint(std::string_view sv)
 {
-	T res(0);
+	constexpr auto muleq_add = [](wuint<width> &lhs, std::uint32_t c, std::uint32_t carry) {
+		for (std::size_t i = 0; i != width; ++i) {
+			std::uint64_t w = static_cast<std::uint64_t>(lhs.cells[i]) * c + carry;
+			lhs.cells[i] = static_cast<std::uint32_t>(w);
+			carry = static_cast<std::uint32_t>(w >> 32);
+		}
+	};
+
+	wuint<width> res(0);
 
 	bool negative = false;
 
@@ -1249,42 +1257,43 @@ constexpr T from_string(std::string_view sv)
 		sv.remove_prefix(1);
 	}
 
+	std::uint32_t base = 10;
+
 	if (sv.starts_with("0x") || sv.starts_with("0X"))
 	{
 		sv.remove_prefix(2);
 
-		for (auto ch : sv) {
-			if (ch >= '0' && ch <= '9') {
-				res = res * 16 + (ch - '0');
-			}
-			else if (ch >= 'a' && ch <= 'f') {
-				res = res * 16 + (ch - 'a' + 10);
-			}
-			else if (ch >= 'A' && ch <= 'F') {
-				res = res * 16 + (ch - 'A' + 10);
-			}
-			else {
-				break;
-			}
-		}
-	}
-	else {
-		for (auto ch : sv) {
-			if (ch < '0' || ch > '9') {
-				break;
-			}
-
-			res = res * 10 + (ch - '0');
-		}
+		base = 16;
 	}
 
-	return negative ? -res : res;
-}
+	const std::uint32_t digits_base_limit = std::numeric_limits<std::uint32_t>::max() / base;
 
-template<std::size_t width>
-constexpr wuint<width>::wuint(std::string_view sv)
-{
-	*this = from_string<wuint<width>>(sv);
+	std::uint32_t digits_base = 1;
+	std::uint32_t digits = 0;
+
+	for (auto ch : sv) {
+		std::uint32_t next_digit = detail::from_char_table[static_cast<unsigned char>(ch)];
+
+		if (next_digit >= base) {
+			break;
+		}
+
+		digits = digits * base + next_digit;
+		digits_base *= base;
+
+		if (digits_base >= digits_base_limit) {
+			muleq_add(res, digits_base, digits);
+
+			digits = 0;
+			digits_base = 1;
+		}
+	}
+
+	if (digits_base != 1) {
+		muleq_add(res, digits_base, digits);
+	}
+
+	*this = negative ? -res : res;
 }
 
 #if !defined(WIDEINT_NO_IOSTREAMS)
@@ -1333,7 +1342,7 @@ std::istream &operator>>(std::istream &is, wuint<width> &obj)
 		}
 	}
 
-	obj = from_string<wuint<width>>(s);
+	obj = wuint<width>(s);
 
 	return is;
 }
@@ -1553,7 +1562,9 @@ struct wint {
 		cells[0] = static_cast<std::uint32_t>(c);
 	}
 
-	constexpr explicit wint(std::string_view sv);
+	constexpr explicit wint(std::string_view sv) {
+		*this = wint<width>(wuint<width>(sv));
+	}
 
 	constexpr explicit wint(const wuint<width> &other) : cells{other.cells} {}
 
@@ -2332,12 +2343,6 @@ std::string to_string(const wint<width> &obj)
 	return std::string(buffer.data(), ptr);
 }
 
-template<std::size_t width>
-constexpr wint<width>::wint(std::string_view sv)
-{
-	*this = from_string<wint<width>>(sv);
-}
-
 #if !defined(WIDEINT_NO_IOSTREAMS)
 template<std::size_t width>
 std::ostream &operator<<(std::ostream &os, const wint<width> &obj)
@@ -2384,7 +2389,7 @@ std::istream &operator>>(std::istream &is, wint<width> &obj)
 		}
 	}
 
-	obj = from_string<wint<width>>(s);
+	obj = wint<width>(wuint<width>(s));
 
 	return is;
 }
