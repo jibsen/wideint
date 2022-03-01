@@ -93,6 +93,7 @@ For both signed and unsigned wideints:
   - `getbit` and `setbit` member functions
   - `abs`, `min`, and `max`
   - `to_string`
+  - `from_chars` and `to_chars`
   - specialization of `std::hash`
 
 For unsigned wideints:

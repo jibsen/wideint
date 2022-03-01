@@ -1666,6 +1666,267 @@ TEST_CASE("wint max", "[wint]") {
 	REQUIRE(max(wint96_FF, wint96_7F) == wint96_7F);
 }
 
+TEST_CASE("wint from_chars 10", "[wint]") {
+	using record = std::pair<std::string, std::string>;
+
+	auto data = GENERATE(
+		record{"0", "0"},
+		record{"1", "1"},
+		record{"0001", "1"},
+		record{"286335522", "286335522"},
+		record{"3689367580026693222", "3689367580026693222"},
+		record{"36973223102941133555797576908", "36973223102941133555797576908"},
+		record{"39614081257132168796771975167", "39614081257132168796771975167"},
+		record{"-1", "-1"},
+		record{"-0001", "-1"},
+		record{"-39614081257132168796771975167", "-39614081257132168796771975167"},
+		record{"-39614081257132168796771975168", "-39614081257132168796771975168"}
+	);
+
+	const auto [value, expected] = data;
+
+	wint96 res(42);
+
+	auto [ptr, ec] = from_chars(value.data(), value.data() + value.size(), res, 10);
+
+	REQUIRE(ec == std::errc());
+	REQUIRE(ptr == value.data() + value.size());
+	REQUIRE(res == wint96(expected));
+}
+
+TEST_CASE("wint from_chars 10 end", "[wint]") {
+	auto str = GENERATE(as<std::string>{},
+		"0abc",
+		"1abc",
+		"286335522abc",
+		"-39614081257132168796771975168abc",
+		"-1abc"
+	);
+
+	wint96 res(0);
+
+	auto [ptr, ec] = from_chars(str.data(), str.data() + str.size(), res, 10);
+
+	REQUIRE(ec == std::errc());
+	REQUIRE(ptr == str.data() + str.size() - 3);
+	REQUIRE(res == wint96(str.substr(0, str.size() - 3)));
+}
+
+TEST_CASE("wint from_chars 10 overflow", "[wint]") {
+	auto str = GENERATE(as<std::string>{},
+		"39614081257132168796771975168",
+		"-39614081257132168796771975169"
+	);
+
+	wint96 res(42);
+
+	auto [ptr, ec] = from_chars(str.data(), str.data() + str.size(), res, 10);
+
+	REQUIRE(ec == std::errc::result_out_of_range);
+	REQUIRE(ptr == str.data() + str.size());
+	REQUIRE(res == 42);
+}
+
+TEST_CASE("wint from_chars 10 invalid", "[wint]") {
+	auto str = GENERATE(as<std::string>{},
+		"",
+		"abc",
+		"-abc",
+		"+1",
+		" 1"
+	);
+
+	wint96 res(42);
+
+	auto [ptr, ec] = from_chars(str.data(), str.data() + str.size(), res, 10);
+
+	REQUIRE(ec == std::errc::invalid_argument);
+	REQUIRE(ptr == str.data());
+	REQUIRE(res == 42);
+}
+
+TEST_CASE("wint from_chars 16", "[wint]") {
+	using record = std::pair<std::string, std::string>;
+
+	auto data = GENERATE(
+		record{"0", "0"},
+		record{"1", "1"},
+		record{"11112222", "286335522"},
+		record{"3333444455556666", "3689367580026693222"},
+		record{"777788889999AaAaBbBbCcCc", "36973223102941133555797576908"},
+		record{"7fffffffffffffffffffffff", "39614081257132168796771975167"},
+		record{"-1", "-1"},
+		record{"-7fffffffffffffffffffffff", "-39614081257132168796771975167"},
+		record{"-800000000000000000000000", "-39614081257132168796771975168"}
+	);
+
+	const auto [value, expected] = data;
+
+	wint96 res(0);
+
+	auto [ptr, ec] = from_chars(value.data(), value.data() + value.size(), res, 16);
+
+	REQUIRE(ec == std::errc());
+	REQUIRE(ptr == value.data() + value.size());
+	REQUIRE(res == wint96(expected));
+}
+
+TEST_CASE("wint from_chars 7", "[wint]") {
+	using record = std::pair<std::string, std::string>;
+
+	auto data = GENERATE(
+		record{"0", "0"},
+		record{"1", "1"},
+		record{"10044545304", "286335522"},
+		record{"6414422622333331211340", "3689367580026693222"},
+		record{"4532246320532121443535152360536011", "36973223102941133555797576908"},
+		record{"5060360422412213131405631055526153", "39614081257132168796771975167"},
+		record{"-1", "-1"},
+		record{"-5060360422412213131405631055526153", "-39614081257132168796771975167"},
+		record{"-5060360422412213131405631055526154", "-39614081257132168796771975168"}
+	);
+
+	const auto [value, expected] = data;
+
+	wint96 res(42);
+
+	auto [ptr, ec] = from_chars(value.data(), value.data() + value.size(), res, 7);
+
+	REQUIRE(ec == std::errc());
+	REQUIRE(ptr == value.data() + value.size());
+	REQUIRE(res == wint96(expected));
+}
+
+TEST_CASE("wint to_chars 10", "[wint]") {
+	using record = std::pair<std::string, std::string>;
+
+	auto data = GENERATE(
+		record{"0", "0"},
+		record{"1", "1"},
+		record{"286335522", "286335522"},
+		record{"3689367580026693222", "3689367580026693222"},
+		record{"36973223102941133555797576908", "36973223102941133555797576908"},
+		record{"39614081257132168796771975167", "39614081257132168796771975167"},
+		record{"-1", "-1"},
+		record{"-39614081257132168796771975167", "-39614081257132168796771975167"},
+		record{"-39614081257132168796771975168", "-39614081257132168796771975168"}
+	);
+
+	const auto [value, expected] = data;
+
+	std::string res(expected.size(), '?');
+
+	auto [ptr, ec] = to_chars(res.data(), res.data() + res.size(), wint96(value), 10);
+
+	REQUIRE(ec == std::errc());
+	REQUIRE(ptr == res.data() + expected.size());
+	REQUIRE(res == expected);
+}
+
+TEST_CASE("wint to_chars 10 end", "[wint]") {
+	using record = std::pair<std::string, std::string>;
+
+	auto data = GENERATE(
+		record{"0", "0"},
+		record{"1", "1"},
+		record{"286335522", "286335522"},
+		record{"3689367580026693222", "3689367580026693222"},
+		record{"36973223102941133555797576908", "36973223102941133555797576908"},
+		record{"39614081257132168796771975167", "39614081257132168796771975167"},
+		record{"-1", "-1"},
+		record{"-39614081257132168796771975167", "-39614081257132168796771975167"},
+		record{"-39614081257132168796771975168", "-39614081257132168796771975168"}
+	);
+
+	const auto [value, expected] = data;
+
+	std::string res(expected.size() + 1, '?');
+
+	auto [ptr, ec] = to_chars(res.data(), res.data() + res.size(), wint96(value), 10);
+
+	REQUIRE(ec == std::errc());
+	REQUIRE(ptr == res.data() + expected.size());
+	REQUIRE(res.substr(0, expected.size()) == expected);
+	REQUIRE(res[expected.size()] == '?');
+}
+
+TEST_CASE("wint to_chars 10 size", "[wint]") {
+	using record = std::pair<std::string, std::string>;
+
+	auto data = GENERATE(
+		record{"0", "0"},
+		record{"1", "1"},
+		record{"286335522", "286335522"},
+		record{"3689367580026693222", "3689367580026693222"},
+		record{"36973223102941133555797576908", "36973223102941133555797576908"},
+		record{"39614081257132168796771975167", "39614081257132168796771975167"},
+		record{"-1", "-1"},
+		record{"-39614081257132168796771975167", "-39614081257132168796771975167"},
+		record{"-39614081257132168796771975168", "-39614081257132168796771975168"}
+	);
+
+	const auto [value, expected] = data;
+
+	std::string res(expected.size() - 1, '?');
+
+	auto [ptr, ec] = to_chars(res.data(), res.data() + res.size(), wint96(value), 10);
+
+	REQUIRE(ec == std::errc::value_too_large);
+	REQUIRE(ptr == res.data() + res.size());
+}
+
+TEST_CASE("wint to_chars 16", "[wint]") {
+	using record = std::pair<std::string, std::string>;
+
+	auto data = GENERATE(
+		record{"0", "0"},
+		record{"1", "1"},
+		record{"286335522", "11112222"},
+		record{"3689367580026693222", "3333444455556666"},
+		record{"36973223102941133555797576908", "777788889999aaaabbbbcccc"},
+		record{"39614081257132168796771975167", "7fffffffffffffffffffffff"},
+		record{"-1", "-1"},
+		record{"-39614081257132168796771975167", "-7fffffffffffffffffffffff"},
+		record{"-39614081257132168796771975168", "-800000000000000000000000"}
+	);
+
+	const auto [value, expected] = data;
+
+	std::string res(expected.size(), '?');
+
+	auto [ptr, ec] = to_chars(res.data(), res.data() + res.size(), wint96(value), 16);
+
+	REQUIRE(ec == std::errc());
+	REQUIRE(ptr == res.data() + expected.size());
+	REQUIRE(res == expected);
+}
+
+TEST_CASE("wint to_chars 7", "[wint]") {
+	using record = std::pair<std::string, std::string>;
+
+	auto data = GENERATE(
+		record{"0", "0"},
+		record{"1", "1"},
+		record{"286335522", "10044545304"},
+		record{"3689367580026693222", "6414422622333331211340"},
+		record{"36973223102941133555797576908", "4532246320532121443535152360536011"},
+		record{"39614081257132168796771975167", "5060360422412213131405631055526153"},
+		record{"-1", "-1"},
+		record{"-39614081257132168796771975167", "-5060360422412213131405631055526153"},
+		record{"-39614081257132168796771975168", "-5060360422412213131405631055526154"}
+	);
+
+	const auto [value, expected] = data;
+
+	std::string res(expected.size(), '?');
+
+	auto [ptr, ec] = to_chars(res.data(), res.data() + res.size(), wint96(value), 7);
+
+	REQUIRE(ec == std::errc());
+	REQUIRE(ptr == res.data() + expected.size());
+	REQUIRE(res == expected);
+}
+
 TEST_CASE("wint to_string", "[wint]") {
 	auto str = GENERATE(as<std::string>{},
 		"0",

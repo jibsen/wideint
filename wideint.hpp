@@ -21,6 +21,7 @@
 #include <algorithm>
 #include <array>
 #include <bit>
+#include <charconv>
 #include <compare>
 #include <cstddef>
 #include <cstdint>
@@ -34,6 +35,12 @@
 #endif
 
 namespace wideint {
+
+template<std::size_t width>
+struct wint;
+
+template<std::size_t width>
+struct wuint;
 
 namespace detail {
 
@@ -53,10 +60,48 @@ constexpr std::int32_t safe_abs(std::int32_t c)
 	return neg_c < 0 ? c : neg_c;
 }
 
-} // namespace detail
+inline constexpr auto to_char_table = [] {
+	std::array<char, 36> res = {};
 
-template<std::size_t width>
-struct wint;
+	for (std::size_t i = 0; i != 10; ++i) {
+		res[i] = static_cast<char>('0' + i);
+	}
+
+	for (std::size_t i = 10; i != 36; ++i) {
+		res[i] = static_cast<char>('a' + (i - 10));
+	}
+
+	return res;
+}();
+
+static_assert(to_char_table[10] == 'a');
+static_assert(to_char_table[35] == 'z');
+
+inline constexpr auto from_char_table = [] {
+	std::array<unsigned char, 256> res = {};
+
+	res.fill(255);
+
+	for (std::size_t i = 0; i != 10; ++i) {
+		res['0' + i] = static_cast<unsigned char>(i);
+	}
+
+	for (std::size_t i = 10; i != 36; ++i) {
+		res['a' + (i - 10)] = static_cast<unsigned char>(i);
+		res['A' + (i - 10)] = static_cast<unsigned char>(i);
+	}
+
+	return res;
+}();
+
+static_assert(from_char_table[static_cast<unsigned char>('0')] == 0);
+static_assert(from_char_table[static_cast<unsigned char>('9')] == 9);
+static_assert(from_char_table[static_cast<unsigned char>('a')] == 10);
+static_assert(from_char_table[static_cast<unsigned char>('z')] == 35);
+static_assert(from_char_table[static_cast<unsigned char>('A')] == 10);
+static_assert(from_char_table[static_cast<unsigned char>('Z')] == 35);
+
+} // namespace detail
 
 template<std::size_t width>
 struct wuint {
@@ -993,6 +1038,193 @@ template<std::size_t width>
 constexpr wuint<width> max(const wuint<width> &lhs, const wuint<width> &rhs)
 {
 	return rhs < lhs ? lhs : rhs;
+}
+
+template<std::size_t width>
+constexpr std::from_chars_result from_chars(const char *first, const char *last, wuint<width> &value, int base = 10)
+{
+	constexpr auto muleq_with_carry = [](wuint<width> &lhs, std::uint32_t c, std::uint32_t carry) -> std::uint32_t {
+		for (std::size_t i = 0; i != width; ++i) {
+			std::uint64_t w = static_cast<std::uint64_t>(lhs.cells[i]) * c + carry;
+			lhs.cells[i] = static_cast<std::uint32_t>(w);
+			carry = static_cast<std::uint32_t>(w >> 32);
+		}
+
+		return carry;
+	};
+
+	if (first == last
+	 || detail::from_char_table[static_cast<unsigned char>(*first)] >= base) {
+		return {first, std::errc::invalid_argument};
+	}
+
+	wuint<width> res(0);
+
+	bool overflow = false;
+
+	const std::uint32_t ubase = static_cast<std::uint32_t>(base);
+	const std::uint32_t digits_base_limit = std::numeric_limits<std::uint32_t>::max() / ubase;
+
+	std::uint32_t digits_base = 1;
+	std::uint32_t digits = 0;
+
+	auto cur = first;
+
+	for (; cur != last; ++cur) {
+		std::uint32_t next_digit = detail::from_char_table[static_cast<unsigned char>(*cur)];
+
+		if (next_digit >= ubase) {
+			break;
+		}
+
+		digits = digits * ubase + next_digit;
+		digits_base *= ubase;
+
+		if (digits_base >= digits_base_limit) {
+			auto carry = muleq_with_carry(res, digits_base, digits);
+
+			overflow |= !!carry;
+
+			digits = 0;
+			digits_base = 1;
+		}
+	}
+
+	if (digits_base != 1) {
+		auto carry = muleq_with_carry(res, digits_base, digits);
+
+		overflow |= !!carry;
+	}
+
+	if (overflow) {
+		return {cur, std::errc::result_out_of_range};
+	}
+
+	value = res;
+
+	return {cur, std::errc()};
+}
+
+template<std::size_t width>
+constexpr std::to_chars_result to_chars(char *first, char *last, const wuint<width> &value, int base = 10)
+{
+	constexpr auto diveq_r = [](wuint<width> &lhs, std::uint32_t c) -> std::uint32_t {
+		std::uint64_t w = 0;
+
+		for (std::size_t i = width; i--; ) {
+			w = (w << 32) + lhs.cells[i];
+			lhs.cells[i] = static_cast<std::uint32_t>(w / static_cast<std::uint64_t>(c));
+			w %= static_cast<std::uint64_t>(c);
+		}
+
+		return static_cast<std::uint32_t>(w);
+	};
+
+	if (first == last) {
+		return {last, std::errc::value_too_large};
+	}
+
+	auto cur = first;
+
+	if (value == 0) {
+		*cur++ = '0';
+		return {cur, std::errc()};
+	}
+
+	if (base == 10) {
+		wuint<width> tmp(value);
+
+		while (tmp > std::numeric_limits<std::uint32_t>::max()) {
+			if (last - cur < 9) {
+				return {last, std::errc::value_too_large};
+			}
+
+			std::uint32_t digits = diveq_r(tmp, 1'000'000'000UL);
+
+			for (std::size_t i = 0; i != 9; ++i) {
+				*cur++ = static_cast<char>('0' + (digits % 10));
+				digits /= 10;
+			}
+		}
+
+		for (std::uint32_t c = tmp.cells.front(); c != 0; c /= 10) {
+			if (cur == last) {
+				return {last, std::errc::value_too_large};
+			}
+
+			*cur++ = static_cast<char>('0' + (c % 10));
+		}
+	}
+	else if (base == 16) {
+		std::size_t last_cell = 0;
+
+		for (std::size_t i = width; i--; ) {
+			if (value.cells[i]) {
+				last_cell = i;
+				break;
+			}
+		}
+
+		for (std::size_t i = 0; i != last_cell; ++i) {
+			if (last - cur < 8) {
+				return {last, std::errc::value_too_large};
+			}
+
+			std::uint32_t digits = value.cells[i];
+
+			for (std::size_t i = 0; i < 8; ++i) {
+				*cur++ = detail::to_char_table[digits % 16];
+				digits /= 16;
+			}
+		}
+
+		for (std::uint32_t digits = value.cells[last_cell]; digits != 0; digits /= 16) {
+			if (cur == last) {
+				return {last, std::errc::value_too_large};
+			}
+
+			*cur++ = detail::to_char_table[digits % 16];
+		}
+	}
+	else {
+		const std::uint32_t ubase = static_cast<std::uint32_t>(base);
+		const std::uint32_t digits_base_limit = std::numeric_limits<std::uint32_t>::max() / ubase;
+
+		std::uint32_t digits_base = 1;
+		std::uint32_t num_digits = 0;
+
+		while (digits_base < digits_base_limit) {
+			digits_base *= ubase;
+			++num_digits;
+		}
+
+		wuint<width> tmp(value);
+
+		while (tmp > std::numeric_limits<std::uint32_t>::max()) {
+			if (last - cur < num_digits) {
+				return {last, std::errc::value_too_large};
+			}
+
+			std::uint32_t digits = diveq_r(tmp, digits_base);
+
+			for (std::size_t i = 0; i != num_digits; ++i) {
+				*cur++ = detail::to_char_table[digits % ubase];
+				digits /= ubase;
+			}
+		}
+
+		for (std::uint32_t c = tmp.cells.front(); c != 0; c /= ubase) {
+			if (cur == last) {
+				return {last, std::errc::value_too_large};
+			}
+
+			*cur++ = detail::to_char_table[c % ubase];
+		}
+	}
+
+	std::reverse(first, cur);
+
+	return {cur, std::errc()};
 }
 
 template<std::size_t width>
@@ -2049,6 +2281,54 @@ template<std::size_t width>
 constexpr wint<width> max(const wint<width> &lhs, const wint<width> &rhs)
 {
 	return rhs < lhs ? lhs : rhs;
+}
+
+template<std::size_t width>
+constexpr std::from_chars_result from_chars(const char *first, const char *last, wint<width> &value, int base = 10)
+{
+	bool negative = false;
+
+	auto cur = first;
+
+	if (cur != last && *cur == '-') {
+		negative = true;
+		++cur;
+	}
+
+	wuint<width> ures(0);
+
+	auto [ptr, ec] = from_chars(cur, last, ures, base);
+
+	if (ec == std::errc::invalid_argument) {
+		return {first, std::errc::invalid_argument};
+	}
+
+	wint<width> res(ures);
+
+	if (ec == std::errc::result_out_of_range
+	 || (res.is_negative() && !(negative && res == wint<width>::min()))) {
+		return {ptr, std::errc::result_out_of_range};
+	}
+
+	value = negative ? -res : res;
+
+	return {ptr, std::errc()};
+}
+
+template<std::size_t width>
+constexpr std::to_chars_result to_chars(char *first, char *last, const wint<width> &value, int base = 10)
+{
+	if (first == last) {
+		return {last, std::errc::value_too_large};
+	}
+
+	auto cur = first;
+
+	if (value.is_negative()) {
+		*cur++ = '-';
+	}
+
+	return to_chars(cur, last, wuint<width>(abs(value)), base);
 }
 
 template<std::size_t width>

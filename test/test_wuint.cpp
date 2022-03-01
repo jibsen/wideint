@@ -1478,6 +1478,265 @@ TEST_CASE("wuint max", "[wuint]") {
 	REQUIRE(max(wuint96_81, wuint96_FF) == wuint96_FF);
 }
 
+TEST_CASE("wuint from_chars 10", "[wuint]") {
+	using record = std::pair<std::string, std::string>;
+
+	auto data = GENERATE(
+		record{"0", "0"},
+		record{"1", "1"},
+		record{"0001", "1"},
+		record{"286335522", "286335522"},
+		record{"3689367580026693222", "3689367580026693222"},
+		record{"36973223102941133555797576908", "36973223102941133555797576908"},
+		record{"39614081257132168796771975167", "39614081257132168796771975167"},
+		record{"39614081257132168796771975168", "39614081257132168796771975168"},
+		record{"39614081257132168796771975169", "39614081257132168796771975169"},
+		record{"79228162514264337593543950335", "79228162514264337593543950335"}
+	);
+
+	const auto [value, expected] = data;
+
+	wuint96 res(42);
+
+	auto [ptr, ec] = from_chars(value.data(), value.data() + value.size(), res, 10);
+
+	REQUIRE(ec == std::errc());
+	REQUIRE(ptr == value.data() + value.size());
+	REQUIRE(res == wuint96(expected));
+}
+
+TEST_CASE("wuint from_chars 10 end", "[wuint]") {
+	auto str = GENERATE(as<std::string>{},
+		"0abc",
+		"1abc",
+		"286335522abc",
+		"79228162514264337593543950335abc"
+	);
+
+	wuint96 res(0);
+
+	auto [ptr, ec] = from_chars(str.data(), str.data() + str.size(), res, 10);
+
+	REQUIRE(ec == std::errc());
+	REQUIRE(ptr == str.data() + str.size() - 3);
+	REQUIRE(res == wuint96(str.substr(0, str.size() - 3)));
+}
+
+TEST_CASE("wuint from_chars 10 overflow", "[wuint]") {
+	auto str = GENERATE(as<std::string>{},
+		"79228162514264337593543950336",
+		"100000000000000000000000000000000"
+	);
+
+	wuint96 res(42);
+
+	auto [ptr, ec] = from_chars(str.data(), str.data() + str.size(), res, 10);
+
+	REQUIRE(ec == std::errc::result_out_of_range);
+	REQUIRE(ptr == str.data() + str.size());
+	REQUIRE(res == 42);
+}
+
+TEST_CASE("wuint from_chars 10 invalid", "[wuint]") {
+	auto str = GENERATE(as<std::string>{},
+		"",
+		"abc",
+		"-1",
+		"+1",
+		" 1"
+	);
+
+	wuint96 res(42);
+
+	auto [ptr, ec] = from_chars(str.data(), str.data() + str.size(), res, 10);
+
+	REQUIRE(ec == std::errc::invalid_argument);
+	REQUIRE(ptr == str.data());
+	REQUIRE(res == 42);
+}
+
+TEST_CASE("wuint from_chars 16", "[wuint]") {
+	using record = std::pair<std::string, std::string>;
+
+	auto data = GENERATE(
+		record{"0", "0"},
+		record{"1", "1"},
+		record{"11112222", "286335522"},
+		record{"3333444455556666", "3689367580026693222"},
+		record{"777788889999AaAaBbBbCcCc", "36973223102941133555797576908"},
+		record{"7fffffffffffffffffffffff", "39614081257132168796771975167"},
+		record{"800000000000000000000000", "39614081257132168796771975168"},
+		record{"800000000000000000000001", "39614081257132168796771975169"},
+		record{"FFFFFFFFFFFFFFFFFFFFFFFF", "79228162514264337593543950335"}
+	);
+
+	const auto [value, expected] = data;
+
+	wuint96 res(0);
+
+	auto [ptr, ec] = from_chars(value.data(), value.data() + value.size(), res, 16);
+
+	REQUIRE(ec == std::errc());
+	REQUIRE(ptr == value.data() + value.size());
+	REQUIRE(res == wuint96(expected));
+}
+
+TEST_CASE("wuint from_chars 7", "[wuint]") {
+	using record = std::pair<std::string, std::string>;
+
+	auto data = GENERATE(
+		record{"0", "0"},
+		record{"1", "1"},
+		record{"10044545304", "286335522"},
+		record{"6414422622333331211340", "3689367580026693222"},
+		record{"4532246320532121443535152360536011", "36973223102941133555797576908"},
+		record{"5060360422412213131405631055526153", "39614081257132168796771975167"},
+		record{"5060360422412213131405631055526154", "39614081257132168796771975168"},
+		record{"5060360422412213131405631055526155", "39614081257132168796771975169"},
+		record{"13151051145124426263114562144355340", "79228162514264337593543950335"}
+	);
+
+	const auto [value, expected] = data;
+
+	wuint96 res(42);
+
+	auto [ptr, ec] = from_chars(value.data(), value.data() + value.size(), res, 7);
+
+	REQUIRE(ec == std::errc());
+	REQUIRE(ptr == value.data() + value.size());
+	REQUIRE(res == wuint96(expected));
+}
+
+TEST_CASE("wuint to_chars 10", "[wuint]") {
+	using record = std::pair<std::string, std::string>;
+
+	auto data = GENERATE(
+		record{"0", "0"},
+		record{"1", "1"},
+		record{"286335522", "286335522"},
+		record{"3689367580026693222", "3689367580026693222"},
+		record{"36973223102941133555797576908", "36973223102941133555797576908"},
+		record{"39614081257132168796771975167", "39614081257132168796771975167"},
+		record{"39614081257132168796771975168", "39614081257132168796771975168"},
+		record{"39614081257132168796771975169", "39614081257132168796771975169"},
+		record{"79228162514264337593543950335", "79228162514264337593543950335"}
+	);
+
+	const auto [value, expected] = data;
+
+	std::string res(expected.size(), '?');
+
+	auto [ptr, ec] = to_chars(res.data(), res.data() + res.size(), wuint96(value), 10);
+
+	REQUIRE(ec == std::errc());
+	REQUIRE(ptr == res.data() + expected.size());
+	REQUIRE(res == expected);
+}
+
+TEST_CASE("wuint to_chars 10 end", "[wuint]") {
+	using record = std::pair<std::string, std::string>;
+
+	auto data = GENERATE(
+		record{"0", "0"},
+		record{"1", "1"},
+		record{"286335522", "286335522"},
+		record{"3689367580026693222", "3689367580026693222"},
+		record{"36973223102941133555797576908", "36973223102941133555797576908"},
+		record{"39614081257132168796771975167", "39614081257132168796771975167"},
+		record{"39614081257132168796771975168", "39614081257132168796771975168"},
+		record{"39614081257132168796771975169", "39614081257132168796771975169"},
+		record{"79228162514264337593543950335", "79228162514264337593543950335"}
+	);
+
+	const auto [value, expected] = data;
+
+	std::string res(expected.size() + 1, '?');
+
+	auto [ptr, ec] = to_chars(res.data(), res.data() + res.size(), wuint96(value), 10);
+
+	REQUIRE(ec == std::errc());
+	REQUIRE(ptr == res.data() + expected.size());
+	REQUIRE(res.substr(0, expected.size()) == expected);
+	REQUIRE(res[expected.size()] == '?');
+}
+
+TEST_CASE("wuint to_chars 10 size", "[wuint]") {
+	using record = std::pair<std::string, std::string>;
+
+	auto data = GENERATE(
+		record{"0", "0"},
+		record{"1", "1"},
+		record{"286335522", "286335522"},
+		record{"3689367580026693222", "3689367580026693222"},
+		record{"36973223102941133555797576908", "36973223102941133555797576908"},
+		record{"39614081257132168796771975167", "39614081257132168796771975167"},
+		record{"39614081257132168796771975168", "39614081257132168796771975168"},
+		record{"39614081257132168796771975169", "39614081257132168796771975169"},
+		record{"79228162514264337593543950335", "79228162514264337593543950335"}
+	);
+
+	const auto [value, expected] = data;
+
+	std::string res(expected.size() - 1, '?');
+
+	auto [ptr, ec] = to_chars(res.data(), res.data() + res.size(), wuint96(value), 10);
+
+	REQUIRE(ec == std::errc::value_too_large);
+	REQUIRE(ptr == res.data() + res.size());
+}
+
+TEST_CASE("wuint to_chars 16", "[wuint]") {
+	using record = std::pair<std::string, std::string>;
+
+	auto data = GENERATE(
+		record{"0", "0"},
+		record{"1", "1"},
+		record{"286335522", "11112222"},
+		record{"3689367580026693222", "3333444455556666"},
+		record{"36973223102941133555797576908", "777788889999aaaabbbbcccc"},
+		record{"39614081257132168796771975167", "7fffffffffffffffffffffff"},
+		record{"39614081257132168796771975168", "800000000000000000000000"},
+		record{"39614081257132168796771975169", "800000000000000000000001"},
+		record{"79228162514264337593543950335", "ffffffffffffffffffffffff"}
+	);
+
+	const auto [value, expected] = data;
+
+	std::string res(expected.size(), '?');
+
+	auto [ptr, ec] = to_chars(res.data(), res.data() + res.size(), wuint96(value), 16);
+
+	REQUIRE(ec == std::errc());
+	REQUIRE(ptr == res.data() + expected.size());
+	REQUIRE(res == expected);
+}
+
+TEST_CASE("wuint to_chars 7", "[wuint]") {
+	using record = std::pair<std::string, std::string>;
+
+	auto data = GENERATE(
+		record{"0", "0"},
+		record{"1", "1"},
+		record{"286335522", "10044545304"},
+		record{"3689367580026693222", "6414422622333331211340"},
+		record{"36973223102941133555797576908", "4532246320532121443535152360536011"},
+		record{"39614081257132168796771975167", "5060360422412213131405631055526153"},
+		record{"39614081257132168796771975168", "5060360422412213131405631055526154"},
+		record{"39614081257132168796771975169", "5060360422412213131405631055526155"},
+		record{"79228162514264337593543950335", "13151051145124426263114562144355340"}
+	);
+
+	const auto [value, expected] = data;
+
+	std::string res(expected.size(), '?');
+
+	auto [ptr, ec] = to_chars(res.data(), res.data() + res.size(), wuint96(value), 7);
+
+	REQUIRE(ec == std::errc());
+	REQUIRE(ptr == res.data() + expected.size());
+	REQUIRE(res == expected);
+}
+
 TEST_CASE("wuint to_string", "[wuint]") {
 	auto str = GENERATE(as<std::string>{},
 		"0",
