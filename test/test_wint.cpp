@@ -1974,6 +1974,54 @@ TEST_CASE("wint stream output", "[wint]") {
 	REQUIRE(out.str() == str);
 }
 
+TEST_CASE("wint stream output hex", "[wint]") {
+	using record = std::pair<std::string, std::string>;
+
+	auto data = GENERATE(
+		record{"0", "0"},
+		record{"1", "1"},
+		record{"286335522", "11112222"},
+		record{"3689367580026693222", "3333444455556666"},
+		record{"36973223102941133555797576908", "777788889999aaaabbbbcccc"},
+		record{"39614081257132168796771975167", "7fffffffffffffffffffffff"},
+		record{"-1", "-1"},
+		record{"-39614081257132168796771975167", "-7fffffffffffffffffffffff"},
+		record{"-39614081257132168796771975168", "-800000000000000000000000"}
+	);
+
+	const auto [value, expected] = data;
+
+	std::ostringstream out;
+
+	out << std::hex << wint96(value);
+
+	REQUIRE(out.str() == expected);
+}
+
+TEST_CASE("wint stream output oct", "[wint]") {
+	using record = std::pair<std::string, std::string>;
+
+	auto data = GENERATE(
+		record{"0", "0"},
+		record{"1", "1"},
+		record{"286335522", "2104221042"},
+		record{"3689367580026693222", "314632104212525263146"},
+		record{"36973223102941133555797576908", "35673610421146315252527356746314"},
+		record{"39614081257132168796771975167", "37777777777777777777777777777777"},
+		record{"-1", "-1"},
+		record{"-39614081257132168796771975167", "-37777777777777777777777777777777"},
+		record{"-39614081257132168796771975168", "-40000000000000000000000000000000"}
+	);
+
+	const auto [value, expected] = data;
+
+	std::ostringstream out;
+
+	out << std::oct << wint96(value);
+
+	REQUIRE(out.str() == expected);
+}
+
 TEST_CASE("wint stream input", "[wint]") {
 	auto str = GENERATE(as<std::string>{},
 		"0",

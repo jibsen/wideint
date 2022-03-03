@@ -1300,7 +1300,17 @@ constexpr wuint<width>::wuint(std::string_view sv)
 template<std::size_t width>
 std::ostream &operator<<(std::ostream &os, const wuint<width> &obj)
 {
-	return os << to_string(obj);
+	std::array<char, width * 12> buffer;
+
+	std::ios_base::fmtflags ff = os.flags();
+
+	int base = (ff & std::ios_base::hex) ? 16
+	         : (ff & std::ios_base::oct) ? 8
+	         : 10;
+
+	auto [ptr, ec] = to_chars(buffer.data(), buffer.data() + buffer.size(), obj, base);
+
+	return os << std::string_view(buffer.data(), ptr);
 }
 
 template<std::size_t width>
@@ -2347,7 +2357,17 @@ std::string to_string(const wint<width> &obj)
 template<std::size_t width>
 std::ostream &operator<<(std::ostream &os, const wint<width> &obj)
 {
-	return os << to_string(obj);
+	std::array<char, width * 12> buffer;
+
+	std::ios_base::fmtflags ff = os.flags();
+
+	int base = (ff & std::ios_base::hex) ? 16
+	         : (ff & std::ios_base::oct) ? 8
+	         : 10;
+
+	auto [ptr, ec] = to_chars(buffer.data(), buffer.data() + buffer.size(), obj, base);
+
+	return os << std::string_view(buffer.data(), ptr);
 }
 
 template<std::size_t width>

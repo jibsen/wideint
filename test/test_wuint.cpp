@@ -1792,6 +1792,54 @@ TEST_CASE("wuint stream output", "[wuint]") {
 	REQUIRE(out.str() == str);
 }
 
+TEST_CASE("wuint stream output hex", "[wuint]") {
+	using record = std::pair<std::string, std::string>;
+
+	auto data = GENERATE(
+		record{"0", "0"},
+		record{"1", "1"},
+		record{"286335522", "11112222"},
+		record{"3689367580026693222", "3333444455556666"},
+		record{"36973223102941133555797576908", "777788889999aaaabbbbcccc"},
+		record{"39614081257132168796771975167", "7fffffffffffffffffffffff"},
+		record{"39614081257132168796771975168", "800000000000000000000000"},
+		record{"39614081257132168796771975169", "800000000000000000000001"},
+		record{"79228162514264337593543950335", "ffffffffffffffffffffffff"}
+	);
+
+	const auto [value, expected] = data;
+
+	std::ostringstream out;
+
+	out << std::hex << wuint96(value);
+
+	REQUIRE(out.str() == expected);
+}
+
+TEST_CASE("wuint stream output oct", "[wuint]") {
+	using record = std::pair<std::string, std::string>;
+
+	auto data = GENERATE(
+		record{"0", "0"},
+		record{"1", "1"},
+		record{"286335522", "2104221042"},
+		record{"3689367580026693222", "314632104212525263146"},
+		record{"36973223102941133555797576908", "35673610421146315252527356746314"},
+		record{"39614081257132168796771975167", "37777777777777777777777777777777"},
+		record{"39614081257132168796771975168", "40000000000000000000000000000000"},
+		record{"39614081257132168796771975169", "40000000000000000000000000000001"},
+		record{"79228162514264337593543950335", "77777777777777777777777777777777"}
+	);
+
+	const auto [value, expected] = data;
+
+	std::ostringstream out;
+
+	out << std::oct << wuint96(value);
+
+	REQUIRE(out.str() == expected);
+}
+
 TEST_CASE("wuint has_single_bit", "[wuint]") {
 	REQUIRE(has_single_bit(wuint64("0x8000000000000000")));
 	REQUIRE(has_single_bit(wuint64("0x4000000000000000")));
