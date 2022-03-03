@@ -1230,7 +1230,7 @@ constexpr std::to_chars_result to_chars(char *first, char *last, const wuint<wid
 template<std::size_t width>
 std::string to_string(const wuint<width> &obj)
 {
-	std::array<char, width * (std::numeric_limits<std::uint32_t>::digits10 + 1)> buffer;
+	std::array<char, width * 11> buffer;
 
 	auto [ptr, ec] = to_chars(buffer.data(), buffer.data() + buffer.size(), obj, 10);
 
@@ -2336,7 +2336,7 @@ constexpr std::to_chars_result to_chars(char *first, char *last, const wint<widt
 template<std::size_t width>
 std::string to_string(const wint<width> &obj)
 {
-	std::array<char, width * (std::numeric_limits<std::uint32_t>::digits10 + 1)> buffer;
+	std::array<char, width * 11> buffer;
 
 	auto [ptr, ec] = to_chars(buffer.data(), buffer.data() + buffer.size(), obj, 10);
 

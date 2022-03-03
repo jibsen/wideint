@@ -1947,6 +1947,11 @@ TEST_CASE("wint to_string", "[wint]") {
 	REQUIRE(to_string(value) == str);
 }
 
+TEST_CASE("wint to_string max digits", "[wint]") {
+	REQUIRE(to_string(wint32_7F) == "2147483647");
+	REQUIRE(to_string(wint32_80) == "-2147483648");
+}
+
 TEST_CASE("wint stream output", "[wint]") {
 	auto str = GENERATE(as<std::string>{},
 		"0",
@@ -1962,11 +1967,9 @@ TEST_CASE("wint stream output", "[wint]") {
 		"-39614081257132168796771975168"
 	);
 
-	const auto value = wint96(str);
-
 	std::ostringstream out;
 
-	out << value;
+	out << wint96(str);
 
 	REQUIRE(out.str() == str);
 }

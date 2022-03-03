@@ -1771,6 +1771,10 @@ TEST_CASE("wuint to_string", "[wuint]") {
 	REQUIRE(to_string(value) == str);
 }
 
+TEST_CASE("wuint to_string max digits", "[wuint]") {
+	REQUIRE(to_string(wuint32_FF) == "4294967295");
+}
+
 TEST_CASE("wuint stream output", "[wuint]") {
 	auto str = GENERATE(as<std::string>{},
 		"0",
@@ -1781,15 +1785,11 @@ TEST_CASE("wuint stream output", "[wuint]") {
 		"79228162514264337593543950335"
 	);
 
-	const auto value = wuint96(str);
+	std::ostringstream out;
 
-	SECTION("output value") {
-		std::ostringstream out;
+	out << wuint96(str);
 
-		out << value;
-
-		REQUIRE(out.str() == str);
-	}
+	REQUIRE(out.str() == str);
 }
 
 TEST_CASE("wuint has_single_bit", "[wuint]") {
