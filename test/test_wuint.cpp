@@ -1525,7 +1525,8 @@ TEST_CASE("wuint from_chars 10 end", "[wuint]") {
 TEST_CASE("wuint from_chars 10 overflow", "[wuint]") {
 	auto str = GENERATE(as<std::string>{},
 		"79228162514264337593543950336",
-		"100000000000000000000000000000000"
+		"10000000000000000000000000000000",
+		"100000000000000000000000000000000000"
 	);
 
 	wuint96 res(42);
@@ -1579,6 +1580,22 @@ TEST_CASE("wuint from_chars 16", "[wuint]") {
 	REQUIRE(ec == std::errc());
 	REQUIRE(ptr == value.data() + value.size());
 	REQUIRE(res == wuint96(expected));
+}
+
+TEST_CASE("wuint from_chars 16 overflow", "[wuint]") {
+	auto str = GENERATE(as<std::string>{},
+		"1000000000000000000000000",
+		"8000000000000000000000000000",
+		"80000000000000000000000000000000"
+	);
+
+	wuint96 res(42);
+
+	auto [ptr, ec] = from_chars(str.data(), str.data() + str.size(), res, 16);
+
+	REQUIRE(ec == std::errc::result_out_of_range);
+	REQUIRE(ptr == str.data() + str.size());
+	REQUIRE(res == 42);
 }
 
 TEST_CASE("wuint from_chars 7", "[wuint]") {
