@@ -15,13 +15,15 @@ wideint is a C++ implementation of wide *exact-width* integer types.
 #include <iostream>
 #include "wideint.hpp"
 
-int main() {
+int main()
+{
+	// Type alias for convenience
 	using uint128 = wideint::wuint<4>;
 
 	constexpr auto p = uint128("9223372036854775337");
 	constexpr auto q = uint128("4611686018427387847");
 
-	// prints 42535295865117305235085505148949129439
+	// Print product (42535295865117305235085505148949129439)
 	std::cout << p * q << '\n';
 }
 ~~~
@@ -113,10 +115,8 @@ it stores as a two's complement representation.
 #include <utility>
 #include "wideint.hpp"
 
-using wideint::wint;
-
-template<std::size_t width>
-constexpr wint<width> gcd_euclid(const wint<width> &x, const wint<width> &y)
+template<typename T>
+constexpr T gcd_euclid(const T &x, const T &y)
 {
 	auto a = x;
 	auto b = y;
@@ -128,15 +128,18 @@ constexpr wint<width> gcd_euclid(const wint<width> &x, const wint<width> &y)
 	return abs(a);
 }
 
-int main() {
+int main()
+{
+	// Type alias for convenience
 	using int128 = wideint::wint<4>;
 
-	constexpr auto p = int128("-9223372036854775337");
+	// Three large primes
+	constexpr auto p = int128("9223372036854775337");
 	constexpr auto q = int128("4611686018427387847");
 	constexpr auto r = int128("2305843009213693907");
 
-	// prints 2305843009213693907
-	std::cout << gcd_euclid(p * r, q * r) << '\n';
+	// Print GCD of p * r and -q * r (2305843009213693907)
+	std::cout << gcd_euclid(p * r, -q * r) << '\n';
 }
 ~~~
 
