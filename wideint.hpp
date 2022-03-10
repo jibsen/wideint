@@ -213,7 +213,7 @@ struct wuint {
         	return *this;
 	}
 
-	constexpr wuint<width> operator++(int) {
+	[[nodiscard]] constexpr wuint<width> operator++(int) {
 		wuint<width> old = *this;
 		operator++();
 		return old;
@@ -231,7 +231,7 @@ struct wuint {
 		return *this;
 	}
 
-	constexpr wuint<width> operator--(int) {
+	[[nodiscard]] constexpr wuint<width> operator--(int) {
 		wuint<width> old = *this;
 		operator--();
 		return old;
@@ -1672,7 +1672,7 @@ struct wint {
         	return *this;
 	}
 
-	constexpr wint<width> operator++(int) {
+	[[nodiscard]] constexpr wint<width> operator++(int) {
 		wint<width> old = *this;
 		operator++();
 		return old;
@@ -1690,7 +1690,7 @@ struct wint {
 		return *this;
 	}
 
-	constexpr wint<width> operator--(int) {
+	[[nodiscard]] constexpr wint<width> operator--(int) {
 		wint<width> old = *this;
 		operator--();
 		return old;
