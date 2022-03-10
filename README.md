@@ -92,7 +92,7 @@ available.
 For both signed and unsigned wideints:
   - `is_zero` and `is_negative` member functions
   - `getbit` and `setbit` member functions
-  - `abs`, `min`, and `max`
+  - `abs`
   - `to_string`
   - `from_chars` and `to_chars`
   - specialization of `std::hash`

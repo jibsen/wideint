@@ -1640,32 +1640,6 @@ TEST_CASE("wint abs", "[wint]") {
 	REQUIRE(abs(wint96_7F) == wint96_7F);
 }
 
-TEST_CASE("wint min", "[wint]") {
-	REQUIRE(min(wint96("0"), wint96("0")) == wint96("0"));
-	REQUIRE(min(wint96("1"), wint96("0")) == wint96("0"));
-	REQUIRE(min(wint96("0"), wint96("1")) == wint96("0"));
-	REQUIRE(min(wint96("0"), wint96("-1")) == wint96("-1"));
-	REQUIRE(min(wint96("-1"), wint96("-2")) == wint96("-2"));
-	REQUIRE(min(wint96("0x1000000000000"), wint96("0xFFFFFFFFFFFF")) == wint96("0xFFFFFFFFFFFF"));
-	REQUIRE(min(wint96("0x1000000000000"), wint96("0x1000000000001")) == wint96("0x1000000000000"));
-	REQUIRE(min(wint96_80, wint96_81) == wint96_80);
-	REQUIRE(min(wint96_81, wint96_FF) == wint96_81);
-	REQUIRE(min(wint96_FF, wint96_7F) == wint96_FF);
-}
-
-TEST_CASE("wint max", "[wint]") {
-	REQUIRE(max(wint96("0"), wint96("0")) == wint96("0"));
-	REQUIRE(max(wint96("1"), wint96("0")) == wint96("1"));
-	REQUIRE(max(wint96("0"), wint96("1")) == wint96("1"));
-	REQUIRE(max(wint96("0"), wint96("-1")) == wint96("0"));
-	REQUIRE(max(wint96("-1"), wint96("-2")) == wint96("-1"));
-	REQUIRE(max(wint96("0x1000000000000"), wint96("0xFFFFFFFFFFFF")) == wint96("0x1000000000000"));
-	REQUIRE(max(wint96("0x1000000000000"), wint96("0x1000000000001")) == wint96("0x1000000000001"));
-	REQUIRE(max(wint96_80, wint96_81) == wint96_81);
-	REQUIRE(max(wint96_81, wint96_FF) == wint96_FF);
-	REQUIRE(max(wint96_FF, wint96_7F) == wint96_7F);
-}
-
 TEST_CASE("wint from_chars 10", "[wint]") {
 	using record = std::pair<std::string, std::string>;
 
