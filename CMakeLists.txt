@@ -6,7 +6,7 @@ include(CTest)
 
 if(MSVC)
   add_compile_options(/W3)
-else()
+elseif(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
   add_compile_options(-Wall -Wextra -pedantic)
 endif()
 
